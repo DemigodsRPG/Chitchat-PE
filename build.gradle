@@ -1,0 +1,66 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.11.0'
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'license'
+apply plugin: 'maven'
+
+// Default tasks
+defaultTasks 'licenseFormat', 'build'
+
+// Basic project information
+group = 'com.demigodsrpg'
+archivesBaseName = 'chitchat'
+version = '1.0.0-SNAPSHOT'
+
+// Extended project information
+ext.projectName = 'Chitchat'
+ext.inceptionYear = '2014'
+ext.packaging = 'jar'
+ext.url = 'http://demigodsrpg.com'
+ext.description = 'Chitchat'
+ext.organization = 'DemigodsRPG'
+
+// Define variables
+ext.buildNumber = project.hasProperty("buildNumber") ? buildNumber : '0'
+ext.ciSystem = project.hasProperty("ciSystem") ? ciSystem : 'unknown'
+ext.commit = project.hasProperty("commit") ? commit : 'unknown'
+
+// Minimum version of Java required
+sourceCompatibility = '1.7'
+targetCompatibility = '1.7'
+
+repositories {
+    mavenCentral()
+    maven {
+        url "http://repo.md-5.net/content/repositories/snapshots/"
+    }
+}
+
+dependencies {
+    compile group: 'org.spigotmc', name: 'spigot-api', version: '1.7.10-R0.1-SNAPSHOT'
+}
+
+// License header formatting
+license {
+    ext.name = project.name
+    ext.organization = project.organization
+    ext.url = project.url
+    ext.year = project.inceptionYear
+    exclude "**/*.info"
+    exclude "assets/**"
+    header file('HEADER.txt')
+    sourceSets = project.sourceSets
+    ignoreFailures false
+    strictCheck true
+    mapping {
+        java = 'SLASHSTAR_STYLE'
+    }
+}
