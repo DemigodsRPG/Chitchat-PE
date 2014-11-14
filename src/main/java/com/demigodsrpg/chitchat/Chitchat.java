@@ -22,12 +22,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.demigodsrpg.chitchat.impl;
+package com.demigodsrpg.chitchat;
 
-import com.demigodsrpg.chitchat.api.ChatFormat;
-import com.demigodsrpg.chitchat.api.DefaultPlayerTag;
-import com.demigodsrpg.chitchat.api.SpecificPlayerTag;
-import com.demigodsrpg.chitchat.impl.tags.WorldPlayerTag;
+import com.demigodsrpg.chitchat.format.ChatFormat;
+import com.demigodsrpg.chitchat.tag.DefaultPlayerTag;
+import com.demigodsrpg.chitchat.tag.SpecificPlayerTag;
+import com.demigodsrpg.chitchat.tag.WorldPlayerTag;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
@@ -39,8 +39,12 @@ import org.bukkit.plugin.java.JavaPlugin;
  * The simplest plugin for chitchat.
  */
 public class Chitchat extends JavaPlugin implements Listener {
+    // -- STATIC OBJECTS -- //
+
     private static Chitchat INST;
     private static ChatFormat FORMAT;
+
+    // -- BUKKIT ENABLE/DISABLE -- //
 
     @Override
     public void onEnable() {
@@ -48,11 +52,17 @@ public class Chitchat extends JavaPlugin implements Listener {
         INST = this;
         FORMAT = new ChatFormat();
 
+        // Handle config
+        getConfig().options().copyDefaults(true);
+        saveConfig();
+
         // Default tags
-        FORMAT.add(new WorldPlayerTag())
-        .add(new DefaultPlayerTag("prefix", "chitchat.admin", "&4[A]", 3))
-        .add(new SpecificPlayerTag("nablu", "Nablu", "&4[N]", 3))
-        .add(new SpecificPlayerTag("hqm", "HmmmQuestionMark", "&8[DEV]", 3));
+        if(getConfig().getBoolean("use_defaults", true)) {
+            FORMAT.add(new WorldPlayerTag())
+            .add(new DefaultPlayerTag("prefix", "chitchat.admin", "&4[A]", 3))
+            .add(new SpecificPlayerTag("nablu", "Nablu", "&4[N]", 3))
+            .add(new SpecificPlayerTag("hqm", "HmmmQuestionMark", "&8[DEV]", 3));
+        }
 
         // Register event
         getServer().getPluginManager().registerEvents(this, this);
@@ -60,21 +70,42 @@ public class Chitchat extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
-        // Unregister events
+        // Manually unregister events
         HandlerList.unregisterAll((Listener) this);
     }
 
+    // -- API METHODS -- //
+
+    /**
+     * Get the chat format for adding tags or changing other settings.
+     *
+     * @return The enabled chat format.
+     */
     public static ChatFormat getChatFormat() {
         return FORMAT;
     }
 
+    /**
+     * Set the entire chat format to a custom version.
+     *
+     * @param chatFormat A custom chat format.
+     * @deprecated Only use this if you know what you are doing.
+     */
+    @Deprecated
     public static void setChatFormat(ChatFormat chatFormat) {
         FORMAT = chatFormat;
     }
 
+    /**
+     * Get the instance of this plugin.
+     *
+     * @return The current instance of this plugin.
+     */
     public static Chitchat getInst() {
         return INST;
     }
+
+    // -- BUKKIT CHAT LISTENER -- //
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onChat(AsyncPlayerChatEvent chat) {

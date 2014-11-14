@@ -1,0 +1,2 @@
+use_defaults: true
+format: '+tags&7: &f+message'

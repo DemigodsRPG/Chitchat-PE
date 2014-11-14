@@ -22,17 +22,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.demigodsrpg.chitchat.impl.tags;
+package com.demigodsrpg.chitchat.tag;
 
-import com.demigodsrpg.chitchat.api.PlayerTag;
-import com.demigodsrpg.chitchat.impl.Chitchat;
+import com.demigodsrpg.chitchat.Chitchat;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * A default tag based on a player's current world.
+ */
 public class WorldPlayerTag implements PlayerTag {
+    // -- NAME CACHE -- //
+
     private final Map<String, String> TEXT_CACHE = new HashMap<String, String>();
+
+    // -- GETTERS -- //
 
     @Override
     public String getName() {

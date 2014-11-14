@@ -22,15 +22,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.demigodsrpg.chitchat.api;
+package com.demigodsrpg.chitchat.tag;
 
 import org.bukkit.entity.Player;
 
+/**
+ * A player tag that applies to a specific player name.
+ */
 public class SpecificPlayerTag implements PlayerTag {
+    // -- IMPORTANT DATA -- //
+
     private final String name;
     private final String playerName;
     private final String tagText;
     private final int priority;
+
+    // -- CONSTRUCTOR -- //
 
     public SpecificPlayerTag(String name, String playerName, String tagText, int priority) {
         this.name = name;
@@ -38,6 +45,8 @@ public class SpecificPlayerTag implements PlayerTag {
         this.tagText = tagText;
         this.priority = priority;
     }
+
+    // -- GETTERS -- //
 
     @Override
     public String getName() {

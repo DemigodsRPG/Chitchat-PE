@@ -22,12 +22,46 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.demigodsrpg.chitchat.api;
+package com.demigodsrpg.chitchat.tag;
 
 import org.bukkit.entity.Player;
 
-public interface PlayerTag {
-    String getName();
-    String getFor(Player tagSource);
-    int getPriority();
+/**
+ * The a default player tag based on permission nodes.
+ */
+public class DefaultPlayerTag implements PlayerTag {
+    // -- IMPORTANT DATA -- //
+    private final String name;
+    private final String permissionNode;
+    private final String tagText;
+    private final int priority;
+
+    // -- CONSTRUCTOR -- //
+
+    public DefaultPlayerTag(String name, String permissionNode, String tagText, int priority) {
+        this.name = name;
+        this.permissionNode = permissionNode;
+        this.tagText = tagText;
+        this.priority = priority;
+    }
+
+    // -- GETTERS -- //
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String getFor(Player tagSource) {
+        if(tagSource.hasPermission(permissionNode)) {
+            return tagText;
+        }
+        return "";
+    }
+
+    @Override
+    public int getPriority() {
+        return priority;
+    }
 }
