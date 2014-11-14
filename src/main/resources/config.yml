@@ -1,2 +1,2 @@
 use_examples: true
-format: '+tags&7: &f+message'
+format: '+tags&7+displayname&7: &f+message'

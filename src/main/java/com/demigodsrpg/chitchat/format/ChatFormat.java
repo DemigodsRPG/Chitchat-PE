@@ -47,7 +47,7 @@ public class ChatFormat {
      * Create a default chat format.
      */
     public ChatFormat() {
-        this(Chitchat.getInst().getConfig().getString("format", "+tags&7: &f+message"));
+        this(Chitchat.getInst().getConfig().getString("format", "+tags&7+displayname&7: &f+message"));
     }
 
     /**
@@ -153,6 +153,9 @@ public class ChatFormat {
      * @return The final formatted message.
      */
     public String getFormattedMessage(Player player, String message) {
-        return ChatColor.translateAlternateColorCodes('&', format.replace("+tags", getTagsString(player)).replace("+message", message));
+        return ChatColor.translateAlternateColorCodes('&', format.
+                replace("+tags", getTagsString(player)).
+                replace("+message", message).
+                replace("+displayname", player.getDisplayName()));
     }
 }
