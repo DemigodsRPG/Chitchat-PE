@@ -57,7 +57,7 @@ public class Chitchat extends JavaPlugin implements Listener {
         saveConfig();
 
         // Default tags
-        if(getConfig().getBoolean("use_defaults", true)) {
+        if(getConfig().getBoolean("use_examples", true)) {
             FORMAT.add(new WorldPlayerTag())
             .add(new DefaultPlayerTag("prefix", "chitchat.admin", "&4[A]", 3))
             .add(new SpecificPlayerTag("nablu", "Nablu", "&4[N]", 3))

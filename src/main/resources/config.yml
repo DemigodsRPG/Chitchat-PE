@@ -1,2 +1,2 @@
-use_defaults: true
+use_examples: true
 format: '+tags&7: &f+message'
