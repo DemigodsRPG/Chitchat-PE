@@ -28,24 +28,23 @@ import com.demigodsrpg.chitchat.format.ChatFormat;
 import com.demigodsrpg.chitchat.tag.DefaultPlayerTag;
 import com.demigodsrpg.chitchat.tag.SpecificPlayerTag;
 import com.demigodsrpg.chitchat.tag.WorldPlayerTag;
-import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.plugin.messaging.PluginMessageListener;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
 /**
  * The simplest plugin for chitchat.
  */
-public class Chitchat extends JavaPlugin implements Listener, PluginMessageListener {
+public class Chitchat extends JavaPlugin implements Listener {
     // -- STATIC OBJECTS -- //
 
     private static Chitchat INST;
@@ -74,7 +73,6 @@ public class Chitchat extends JavaPlugin implements Listener, PluginMessageListe
         // Register events
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
-        getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", this);
     }
 
     @Override
@@ -140,25 +138,5 @@ public class Chitchat extends JavaPlugin implements Listener, PluginMessageListe
         out.write(msgbytes.toByteArray());
 
         chat.getPlayer().sendPluginMessage(this, "BungeeCord", out.toByteArray());
-    }
-
-    @Override
-    public void onPluginMessageReceived(String channel, Player player, byte[] message) {
-        if("BungeeCord".equals(channel)) {
-            ByteArrayDataInput in = ByteStreams.newDataInput(message);
-            String subchannel = in.readUTF();
-
-            if("chitchat".equals(subchannel)) {
-                short len = in.readShort();
-                byte[] msgbytes = new byte[len];
-                in.readFully(msgbytes);
-
-                DataInputStream msgin = new DataInputStream(new ByteArrayInputStream(msgbytes));
-                try {
-                    player.sendMessage(msgin.readUTF());
-                } catch (IOException ignored) {
-                }
-            }
-        }
     }
 }
