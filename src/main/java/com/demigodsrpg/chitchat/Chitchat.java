@@ -28,17 +28,24 @@ import com.demigodsrpg.chitchat.format.ChatFormat;
 import com.demigodsrpg.chitchat.tag.DefaultPlayerTag;
 import com.demigodsrpg.chitchat.tag.SpecificPlayerTag;
 import com.demigodsrpg.chitchat.tag.WorldPlayerTag;
+import com.google.common.io.ByteArrayDataInput;
+import com.google.common.io.ByteArrayDataOutput;
+import com.google.common.io.ByteStreams;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.messaging.PluginMessageListener;
+
+import java.io.*;
 
 /**
  * The simplest plugin for chitchat.
  */
-public class Chitchat extends JavaPlugin implements Listener {
+public class Chitchat extends JavaPlugin implements Listener, PluginMessageListener {
     // -- STATIC OBJECTS -- //
 
     private static Chitchat INST;
@@ -64,8 +71,10 @@ public class Chitchat extends JavaPlugin implements Listener {
             .add(new SpecificPlayerTag("hqm", "HmmmQuestionMark", "&8[DEV]", 3));
         }
 
-        // Register event
+        // Register events
         getServer().getPluginManager().registerEvents(this, this);
+        getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+        getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", this);
     }
 
     @Override
@@ -110,5 +119,46 @@ public class Chitchat extends JavaPlugin implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onChat(AsyncPlayerChatEvent chat) {
         chat.setFormat(FORMAT.getFormattedMessage(chat.getPlayer(), chat.getMessage()));
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onFinalChat(AsyncPlayerChatEvent chat) {
+        ByteArrayDataOutput out = ByteStreams.newDataOutput();
+
+        out.writeUTF("Forward"); // So BungeeCord knows to forward it
+        out.writeUTF("ALL");
+        out.writeUTF("chitchat"); // The channel name to check if this your data
+
+        ByteArrayOutputStream msgbytes = new ByteArrayOutputStream();
+        DataOutputStream msgout = new DataOutputStream(msgbytes);
+        try {
+            msgout.writeUTF(chat.getFormat());
+        } catch (IOException ignored) {
+        }
+
+        out.writeShort(msgbytes.toByteArray().length);
+        out.write(msgbytes.toByteArray());
+
+        chat.getPlayer().sendPluginMessage(this, "BungeeCord", out.toByteArray());
+    }
+
+    @Override
+    public void onPluginMessageReceived(String channel, Player player, byte[] message) {
+        if("BungeeCord".equals(channel)) {
+            ByteArrayDataInput in = ByteStreams.newDataInput(message);
+            String subchannel = in.readUTF();
+
+            if("chitchat".equals(subchannel)) {
+                short len = in.readShort();
+                byte[] msgbytes = new byte[len];
+                in.readFully(msgbytes);
+
+                DataInputStream msgin = new DataInputStream(new ByteArrayInputStream(msgbytes));
+                try {
+                    player.sendMessage(msgin.readUTF());
+                } catch (IOException ignored) {
+                }
+            }
+        }
     }
 }
