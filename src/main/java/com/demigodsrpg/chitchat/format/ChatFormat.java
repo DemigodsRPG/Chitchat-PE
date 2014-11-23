@@ -156,6 +156,7 @@ public class ChatFormat {
         return ChatColor.translateAlternateColorCodes('&', format.
                 replace("+tags", getTagsString(player)).
                 replace("+message", message).
+                replaceAll("%", "%%").
                 replace("+displayname", player.getDisplayName()));
     }
 }
