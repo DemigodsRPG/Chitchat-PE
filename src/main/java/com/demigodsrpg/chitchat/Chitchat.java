@@ -129,7 +129,8 @@ public class Chitchat extends JavaPlugin implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onFinalChat(AsyncPlayerChatEvent chat) {
-        sendBungeeMessage(chat.getPlayer(), "Forward", "ALL", "chitchat$" + SERVER_CHANNEL, chat.getFormat());
+        String channelRaw = "chitchat$" + chat.getPlayer().getUniqueId().toString() + "$" + SERVER_CHANNEL;
+        sendBungeeMessage(chat.getPlayer(), "Forward", "ALL", channelRaw, chat.getFormat());
     }
 
     private void sendBungeeMessage(Player target, String messageType, String targetServer, String channel, String message) {
@@ -138,7 +139,6 @@ public class Chitchat extends JavaPlugin implements Listener {
         out.writeUTF(messageType);
         out.writeUTF(targetServer);
         out.writeUTF(channel);
-        out.writeUTF(target.getUniqueId().toString());
 
         ByteArrayOutputStream msgbytes = new ByteArrayOutputStream();
         DataOutputStream msgout = new DataOutputStream(msgbytes);
