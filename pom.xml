@@ -11,13 +11,13 @@
     <name>Chitchat</name>
     <properties> <!-- It is important to keep up to date manually. -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spigot.version>1.7.10-R0.1-SNAPSHOT</spigot.version>
+        <spigot.version>1.8-R0.1-SNAPSHOT</spigot.version>
     </properties>
 
     <repositories>
         <repository>
-            <id>md5-repo</id>
-            <url>http://repo.md-5.net/content/repositories/snapshots/</url>
+            <id>spigot-releases</id>
+            <url>http://hub.spigotmc.org/nexus/content/repositories/public</url>
         </repository>
     </repositories>
 
