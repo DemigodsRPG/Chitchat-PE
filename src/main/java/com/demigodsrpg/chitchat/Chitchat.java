@@ -30,6 +30,7 @@ import com.demigodsrpg.chitchat.tag.SpecificPlayerTag;
 import com.demigodsrpg.chitchat.tag.WorldPlayerTag;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
@@ -50,6 +51,10 @@ public class Chitchat extends JavaPlugin implements Listener {
     private static Chitchat INST;
     private static ChatFormat FORMAT;
 
+    // -- IMPORTANT CONFIG VALUES -- //
+
+    private String SERVER_CHANNEL;
+
     // -- BUKKIT ENABLE/DISABLE -- //
 
     @Override
@@ -61,6 +66,9 @@ public class Chitchat extends JavaPlugin implements Listener {
         // Handle config
         getConfig().options().copyDefaults(true);
         saveConfig();
+
+        // Get the server's chat channel
+        SERVER_CHANNEL = getConfig().getString("bungee_channel");
 
         // Default tags
         if(getConfig().getBoolean("use_examples", true)) {
@@ -121,22 +129,29 @@ public class Chitchat extends JavaPlugin implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onFinalChat(AsyncPlayerChatEvent chat) {
+        sendBungeeMessage(chat.getPlayer(), "Forward", "ALL", "chitchat$" + SERVER_CHANNEL, chat.getFormat());
+    }
+
+    private void sendBungeeMessage(Player target, String messageType, String targetServer, String channel, String message) {
         ByteArrayDataOutput out = ByteStreams.newDataOutput();
 
-        out.writeUTF("Forward"); // So BungeeCord knows to forward it
-        out.writeUTF("ALL");
-        out.writeUTF("chitchat"); // The channel name to check if this your data
+        out.writeUTF(messageType);
+        out.writeUTF(targetServer);
+        out.writeUTF(channel);
+        out.writeUTF(target.getUniqueId().toString());
 
         ByteArrayOutputStream msgbytes = new ByteArrayOutputStream();
         DataOutputStream msgout = new DataOutputStream(msgbytes);
+
         try {
-            msgout.writeUTF(chat.getFormat());
+            msgout.writeUTF(message);
         } catch (IOException ignored) {
         }
 
+        // Write the message
         out.writeShort(msgbytes.toByteArray().length);
         out.write(msgbytes.toByteArray());
 
-        chat.getPlayer().sendPluginMessage(this, "BungeeCord", out.toByteArray());
+        target.sendPluginMessage(this, "BungeeCord", out.toByteArray());
     }
 }
