@@ -29,7 +29,7 @@ import org.bukkit.entity.Player;
 /**
  * The a default player tag based on permission nodes.
  */
-public class DefaultPlayerTag implements PlayerTag {
+public class DefaultPlayerTag extends PlayerTag {
     // -- IMPORTANT DATA -- //
     private final String name;
     private final String permissionNode;
@@ -58,11 +58,6 @@ public class DefaultPlayerTag implements PlayerTag {
             return tagText;
         }
         return "";
-    }
-
-    @Override
-    public boolean cancelBungee(Player tagSource) {
-        return false;
     }
 
     @Override

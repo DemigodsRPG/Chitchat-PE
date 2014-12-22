@@ -164,7 +164,7 @@ public class ChatFormat {
     }
 
     /**
-     * Check to see if a tag doesn't want this message sent over bungee.
+     * Should this message not be sent over bungee?
      *
      * @param chat The chat event.
      * @return If the message should be sent over bungee.

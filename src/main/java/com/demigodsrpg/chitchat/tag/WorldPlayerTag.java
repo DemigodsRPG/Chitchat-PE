@@ -33,7 +33,7 @@ import java.util.Map;
 /**
  * A default tag based on a player's current world.
  */
-public class WorldPlayerTag implements PlayerTag {
+public class WorldPlayerTag extends PlayerTag {
     // -- NAME CACHE -- //
 
     private final Map<String, String> TEXT_CACHE = new HashMap<String, String>();
@@ -59,11 +59,6 @@ public class WorldPlayerTag implements PlayerTag {
         String tagText = Chitchat.getInst().getConfig().getString("worlds." + worldName + ".text", "[" + worldName.toUpperCase() + "]");
         TEXT_CACHE.put(worldName, tagText);
         return tagText;
-    }
-
-    @Override
-    public boolean cancelBungee(Player tagSource) {
-        return false;
     }
 
     @Override

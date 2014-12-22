@@ -29,13 +29,13 @@ import org.bukkit.entity.Player;
 /**
  * An interface representing a player tag.
  */
-public interface PlayerTag {
+public abstract class PlayerTag {
     /**
      * Get the name of this player tag.
      *
      * @return The name.
      */
-    String getName();
+    public abstract String getName();
 
     /**
      * Get the tag result for a player.
@@ -43,20 +43,22 @@ public interface PlayerTag {
      * @param tagSource The player.
      * @return The tag result.
      */
-    String getFor(Player tagSource);
+    public abstract String getFor(Player tagSource);
 
     /**
-     * Under certain conditions, this tag will cancel sending the chat message to bungee.
+     * Should this player currently be not be sending chat over bungee?
      *
      * @param tagSource The player.
      * @return The message shouldn't be sent to bungee.
      */
-    boolean cancelBungee(Player tagSource);
+    public boolean cancelBungee(Player tagSource) {
+        return false;
+    }
 
     /**
      * Get the priority (0 being leftmost, all larger being to the right).
      *
      * @return The priority.
      */
-    int getPriority();
+    public abstract int getPriority();
 }

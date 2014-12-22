@@ -29,7 +29,7 @@ import org.bukkit.entity.Player;
 /**
  * A player tag that applies to a specific player name.
  */
-public class SpecificPlayerTag implements PlayerTag {
+public class SpecificPlayerTag extends PlayerTag {
     // -- IMPORTANT DATA -- //
 
     private final String name;
@@ -59,11 +59,6 @@ public class SpecificPlayerTag implements PlayerTag {
             return tagText;
         }
         return "";
-    }
-
-    @Override
-    public boolean cancelBungee(Player tagSource) {
-        return false;
     }
 
     @Override
