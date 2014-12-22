@@ -54,6 +54,7 @@ public class Chitchat extends JavaPlugin implements Listener {
     // -- IMPORTANT CONFIG VALUES -- //
 
     private String SERVER_CHANNEL;
+    private boolean USE_BUNGEE;
 
     // -- BUKKIT ENABLE/DISABLE -- //
 
@@ -68,7 +69,10 @@ public class Chitchat extends JavaPlugin implements Listener {
         saveConfig();
 
         // Get the server's chat channel
-        SERVER_CHANNEL = getConfig().getString("bungee_channel");
+        SERVER_CHANNEL = getConfig().getString("bungee_channel", "default");
+
+        // Will we use bungee?
+        USE_BUNGEE = getConfig().getBoolean("use_bungee", true);
 
         // Default tags
         if(getConfig().getBoolean("use_examples", true)) {
@@ -129,8 +133,10 @@ public class Chitchat extends JavaPlugin implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onFinalChat(AsyncPlayerChatEvent chat) {
-        String channelRaw = "chitchat$" + chat.getPlayer().getUniqueId().toString() + "$" + SERVER_CHANNEL;
-        sendBungeeMessage(chat.getPlayer(), "Forward", "ALL", channelRaw, chat.getFormat());
+        if (USE_BUNGEE) {
+            String channelRaw = "chitchat$" + chat.getPlayer().getUniqueId().toString() + "$" + SERVER_CHANNEL;
+            sendBungeeMessage(chat.getPlayer(), "Forward", "ALL", channelRaw, chat.getFormat());
+        }
     }
 
     private void sendBungeeMessage(Player target, String messageType, String targetServer, String channel, String message) {

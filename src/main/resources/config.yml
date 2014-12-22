@@ -1,3 +1,4 @@
 use_examples: true
+use_bungee: true
 format: '+tags&7+displayname&7: &f+message'
 bungee_channel: 'default'
