@@ -133,7 +133,7 @@ public class Chitchat extends JavaPlugin implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onFinalChat(AsyncPlayerChatEvent chat) {
-        if (USE_BUNGEE) {
+        if (USE_BUNGEE && !FORMAT.shouldCancelBungee(chat)) {
             String channelRaw = "chitchat$" + chat.getPlayer().getUniqueId().toString() + "$" + SERVER_CHANNEL;
             sendBungeeMessage(chat.getPlayer(), "Forward", "ALL", channelRaw, chat.getFormat());
         }

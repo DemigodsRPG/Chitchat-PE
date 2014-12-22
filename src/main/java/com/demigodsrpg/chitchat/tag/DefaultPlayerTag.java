@@ -61,6 +61,11 @@ public class DefaultPlayerTag implements PlayerTag {
     }
 
     @Override
+    public boolean cancelBungee(Player tagSource) {
+        return false;
+    }
+
+    @Override
     public int getPriority() {
         return priority;
     }

@@ -46,6 +46,14 @@ public interface PlayerTag {
     String getFor(Player tagSource);
 
     /**
+     * Under certain conditions, this tag will cancel sending the chat message to bungee.
+     *
+     * @param tagSource The player.
+     * @return The message shouldn't be sent to bungee.
+     */
+    boolean cancelBungee(Player tagSource);
+
+    /**
      * Get the priority (0 being leftmost, all larger being to the right).
      *
      * @return The priority.

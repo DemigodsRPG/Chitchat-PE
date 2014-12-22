@@ -29,8 +29,11 @@ import com.demigodsrpg.chitchat.tag.PlayerTag;
 import com.google.common.collect.ImmutableList;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * A class representing the format of chat.
@@ -158,5 +161,20 @@ public class ChatFormat {
                 replace("+message", message).
                 replaceAll("%", "%%").
                 replace("+displayname", player.getDisplayName()));
+    }
+
+    /**
+     * Check to see if a tag doesn't want this message sent over bungee.
+     *
+     * @param chat The chat event.
+     * @return If the message should be sent over bungee.
+     */
+    public boolean shouldCancelBungee(AsyncPlayerChatEvent chat) {
+        for (PlayerTag tag : getPlayerTags()) {
+            if (tag.cancelBungee(chat.getPlayer())) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -62,6 +62,11 @@ public class WorldPlayerTag implements PlayerTag {
     }
 
     @Override
+    public boolean cancelBungee(Player tagSource) {
+        return false;
+    }
+
+    @Override
     public int getPriority() {
         return 0;
     }
