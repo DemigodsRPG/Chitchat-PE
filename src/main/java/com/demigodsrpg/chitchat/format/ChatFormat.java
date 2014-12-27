@@ -156,11 +156,11 @@ public class ChatFormat {
      * @return The final formatted message.
      */
     public String getFormattedMessage(Player player, String message) {
-        return ChatColor.translateAlternateColorCodes('&', format.
+        return ChatColor.translateAlternateColorCodes('&', format).
                 replace("+tags", getTagsString(player)).
                 replace("+message", message).
                 replaceAll("%", "%%").
-                replace("+displayname", player.getDisplayName()));
+                replace("+displayname", player.getDisplayName());
     }
 
     /**
