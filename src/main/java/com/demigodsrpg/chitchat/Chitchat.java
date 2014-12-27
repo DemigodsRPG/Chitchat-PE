@@ -30,6 +30,7 @@ import com.demigodsrpg.chitchat.tag.SpecificPlayerTag;
 import com.demigodsrpg.chitchat.tag.WorldPlayerTag;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -77,9 +78,9 @@ public class Chitchat extends JavaPlugin implements Listener {
         // Default tags
         if(getConfig().getBoolean("use_examples", true)) {
             FORMAT.add(new WorldPlayerTag())
-            .add(new DefaultPlayerTag("prefix", "chitchat.admin", "&4[A]", 3))
-            .add(new SpecificPlayerTag("nablu", "Nablu", "&4[N]", 3))
-            .add(new SpecificPlayerTag("hqm", "HmmmQuestionMark", "&8[DEV]", 3));
+                    .add(new DefaultPlayerTag("prefix", "chitchat.admin", ChatColor.DARK_RED + "[A]", 3))
+                    .add(new SpecificPlayerTag("nablu", "Nablu", ChatColor.DARK_RED + "[N]", 3))
+                    .add(new SpecificPlayerTag("hqm", "HmmmQuestionMark", ChatColor.DARK_GRAY + "[DEV]", 3));
         }
 
         // Register events
