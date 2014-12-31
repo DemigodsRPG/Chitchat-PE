@@ -31,7 +31,6 @@ import com.demigodsrpg.chitchat.tag.WorldPlayerTag;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import net.md_5.bungee.api.ChatColor;
-import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -46,6 +45,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * The simplest plugin for chitchat.
@@ -61,6 +62,10 @@ public class Chitchat extends JavaPlugin implements Listener, CommandExecutor {
     private String SERVER_CHANNEL;
     private boolean USE_BUNGEE;
 
+    // -- MUTE LIST -- //
+
+    private Set<String> MUTE_LIST;
+
     // -- BUKKIT ENABLE/DISABLE -- //
 
     @Override
@@ -68,6 +73,9 @@ public class Chitchat extends JavaPlugin implements Listener, CommandExecutor {
         // Define static instance
         INST = this;
         FORMAT = new ChatFormat();
+
+        // Setup mute list
+        MUTE_LIST = new HashSet<>();
 
         // Handle config
         getConfig().options().copyDefaults(true);
@@ -138,6 +146,10 @@ public class Chitchat extends JavaPlugin implements Listener, CommandExecutor {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onChat(AsyncPlayerChatEvent chat) {
+        if (MUTE_LIST.contains(chat.getPlayer().getName())) {
+            chat.setCancelled(true);
+            return;
+        }
         chat.setFormat(FORMAT.getFormattedMessage(chat.getPlayer(), chat.getMessage()));
     }
 
@@ -164,17 +176,18 @@ public class Chitchat extends JavaPlugin implements Listener, CommandExecutor {
             }
             case "ccmute":
             case "ccunmute": {
-                if (sender.hasPermission("chitchat.mute")) {
+                if (sender instanceof Player && sender.hasPermission("chitchat.mute")) {
                     if (args.length > 0) {
-                        Player target = Bukkit.getPlayer(args[0]);
-                        if (target != null) {
-                            String channelRaw = (command.getName().equals("ccmute") ? "chitchatmute$" : "chitchatunmute$")
-                                    + target.getUniqueId().toString() + "$" + SERVER_CHANNEL;
-                            sendBungeeMessage(target, "Forward", "ALL", channelRaw, "");
+                        String channelRaw = "chitchat";
+                        if (command.getName().equals("ccmute")) {
+                            MUTE_LIST.add(args[0]);
+                            channelRaw += "mute$";
                         } else {
-                            sender.sendMessage(ChatColor.RED + "That player is not currently on this server.");
-                            return true;
+                            MUTE_LIST.remove(args[0]);
+                            channelRaw += "unmute$";
                         }
+                        channelRaw += args[0] + "$" + SERVER_CHANNEL;
+                        sendBungeeMessage((Player) sender, "Forward", "ALL", channelRaw, "");
                     } else {
                         return false;
                     }
