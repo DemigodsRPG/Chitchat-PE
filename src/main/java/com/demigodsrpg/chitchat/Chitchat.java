@@ -31,6 +31,10 @@ import com.demigodsrpg.chitchat.tag.WorldPlayerTag;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -46,7 +50,7 @@ import java.io.IOException;
 /**
  * The simplest plugin for chitchat.
  */
-public class Chitchat extends JavaPlugin implements Listener {
+public class Chitchat extends JavaPlugin implements Listener, CommandExecutor {
     // -- STATIC OBJECTS -- //
 
     private static Chitchat INST;
@@ -86,6 +90,11 @@ public class Chitchat extends JavaPlugin implements Listener {
         // Register events
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+
+        // Register commands
+        getCommand("ccreload").setExecutor(this);
+        getCommand("ccmute").setExecutor(this);
+        getCommand("ccunmute").setExecutor(this);
     }
 
     @Override
@@ -139,6 +148,48 @@ public class Chitchat extends JavaPlugin implements Listener {
             sendBungeeMessage(chat.getPlayer(), "Forward", "ALL", channelRaw, chat.getFormat());
         }
     }
+
+    // -- BUKKIT COMMAND EXECUTOR -- //
+
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        switch (command.getName()) {
+            case "ccreload": {
+                if (sender.hasPermission("chitchat.reload")) {
+                    getServer().getPluginManager().disablePlugin(this);
+                    getServer().getPluginManager().enablePlugin(this);
+                } else {
+                    sender.sendMessage(ChatColor.RED + "You don't have permission to use that command.");
+                    return true;
+                }
+            }
+            case "ccmute":
+            case "ccunmute": {
+                if (sender.hasPermission("chitchat.mute")) {
+                    if (args.length > 0) {
+                        Player target = Bukkit.getPlayer(args[0]);
+                        if (target != null) {
+                            String channelRaw = (command.getName().equals("ccmute") ? "chitchatmute$" : "chitchatunmute$")
+                                    + target.getUniqueId().toString() + "$" + SERVER_CHANNEL;
+                            sendBungeeMessage(target, "Forward", "ALL", channelRaw, "");
+                        } else {
+                            sender.sendMessage(ChatColor.RED + "That player is not currently on this server.");
+                            return true;
+                        }
+                    } else {
+                        return false;
+                    }
+                } else {
+                    sender.sendMessage(ChatColor.RED + "You don't have permission to use that command.");
+                    return true;
+                }
+            }
+            default: {
+                return false;
+            }
+        }
+    }
+
+    // -- PRIVATE HELPER METHODS -- //
 
     private void sendBungeeMessage(Player target, String messageType, String targetServer, String channel, String message) {
         ByteArrayDataOutput out = ByteStreams.newDataOutput();
