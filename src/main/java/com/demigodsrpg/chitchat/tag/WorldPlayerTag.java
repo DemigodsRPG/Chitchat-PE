@@ -25,6 +25,7 @@
 package com.demigodsrpg.chitchat.tag;
 
 import com.demigodsrpg.chitchat.Chitchat;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
@@ -56,7 +57,7 @@ public class WorldPlayerTag extends PlayerTag {
         }
 
         // Generate the tag text
-        String tagText = Chitchat.getInst().getConfig().getString("worlds." + worldName + ".text", "[" + worldName.toUpperCase() + "]");
+        String tagText = ChatColor.translateAlternateColorCodes('&', Chitchat.getInst().getConfig().getString("worlds." + worldName + ".text", "[" + worldName.toUpperCase() + "]"));
         TEXT_CACHE.put(worldName, tagText);
         return tagText;
     }
