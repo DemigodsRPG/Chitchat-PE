@@ -182,9 +182,11 @@ public class Chitchat extends JavaPlugin implements Listener, CommandExecutor {
                         if (command.getName().equals("ccmute")) {
                             MUTE_LIST.add(args[0]);
                             channelRaw += "mute$";
+                            sender.sendMessage(ChatColor.YELLOW + "Muted " + args[0]);
                         } else {
                             MUTE_LIST.remove(args[0]);
                             channelRaw += "unmute$";
+                            sender.sendMessage(ChatColor.YELLOW + "Unmuted " + args[0]);
                         }
                         channelRaw += args[0] + "$" + SERVER_CHANNEL;
                         sendBungeeMessage((Player) sender, "Forward", "ALL", channelRaw, "");
