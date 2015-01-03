@@ -4,7 +4,7 @@ version: 1.0.0
 description: The simplest plugin for chitchat.
 authors: [HmmmQuestionMark]
 commands:
-  chitchatreload:
+  ccreload:
     usage: /ccreload
     aliases: [ccr]
   ccmute:

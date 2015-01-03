@@ -195,8 +195,8 @@ public class Chitchat extends JavaPlugin implements Listener, CommandExecutor {
                     }
                 } else {
                     sender.sendMessage(ChatColor.RED + "You don't have permission to use that command.");
-                    return true;
                 }
+                return true;
             }
             default: {
                 return false;
