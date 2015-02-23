@@ -153,7 +153,7 @@ public class Chitchat extends JavaPlugin implements Listener, CommandExecutor {
         chat.setFormat(FORMAT.getFormattedMessage(chat.getPlayer(), chat.getMessage()));
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onFinalChat(AsyncPlayerChatEvent chat) {
         if (USE_BUNGEE && !FORMAT.shouldCancelBungee(chat)) {
             String channelRaw = "chitchat$" + chat.getPlayer().getUniqueId().toString() + "$" + SERVER_CHANNEL;
