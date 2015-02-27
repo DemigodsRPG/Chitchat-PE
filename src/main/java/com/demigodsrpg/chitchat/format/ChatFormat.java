@@ -158,7 +158,8 @@ public class ChatFormat {
     public String getFormattedMessage(Player player, String message) {
         return ChatColor.translateAlternateColorCodes('&', format).
                 replace("+tags", getTagsString(player)).
-                replace("+message", message).
+                replace("+message", player.hasPermission("chitchat.color") ?
+                        ChatColor.translateAlternateColorCodes('&', message) : message).
                 replaceAll("%", "%%").
                 replace("+displayname", player.getDisplayName());
     }
@@ -169,9 +170,9 @@ public class ChatFormat {
      * @param chat The chat event.
      * @return If the message should be sent over bungee.
      */
-    public boolean shouldCancelBungee(AsyncPlayerChatEvent chat) {
+    public boolean shouldCancelRedis(AsyncPlayerChatEvent chat) {
         for (PlayerTag tag : getPlayerTags()) {
-            if (tag.cancelBungee(chat.getPlayer())) {
+            if (tag.cancelRedis(chat.getPlayer())) {
                 return true;
             }
         }

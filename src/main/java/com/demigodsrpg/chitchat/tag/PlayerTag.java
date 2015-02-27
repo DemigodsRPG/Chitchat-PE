@@ -46,13 +46,25 @@ public abstract class PlayerTag {
     public abstract String getFor(Player tagSource);
 
     /**
-     * Should this player currently be not be sending chat over bungee?
+     * Should this player currently be not be sending chat over redis?
      *
      * @param tagSource The player.
      * @return The message shouldn't be sent to bungee.
      */
-    public boolean cancelBungee(Player tagSource) {
+    public boolean cancelRedis(Player tagSource) {
         return false;
+    }
+
+    /**
+     * Should this player currently be not be sending chat over redis?
+     *
+     * @param tagSource The player.
+     * @return The message shouldn't be sent to bungee.
+     * @deprecated Bungee is no longer supported, we use redis now.
+     */
+    @Deprecated
+    public boolean cancelBungee(Player tagSource) {
+        return cancelRedis(tagSource);
     }
 
     /**

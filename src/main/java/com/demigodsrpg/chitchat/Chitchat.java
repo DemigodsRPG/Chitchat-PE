@@ -28,9 +28,8 @@ import com.demigodsrpg.chitchat.format.ChatFormat;
 import com.demigodsrpg.chitchat.tag.DefaultPlayerTag;
 import com.demigodsrpg.chitchat.tag.SpecificPlayerTag;
 import com.demigodsrpg.chitchat.tag.WorldPlayerTag;
-import com.google.common.io.ByteArrayDataOutput;
-import com.google.common.io.ByteStreams;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -41,11 +40,11 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.redisson.Config;
+import org.redisson.Redisson;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
 import java.util.HashSet;
+import java.util.Queue;
 import java.util.Set;
 
 /**
@@ -57,13 +56,16 @@ public class Chitchat extends JavaPlugin implements Listener, CommandExecutor {
     private static Chitchat INST;
     private static ChatFormat FORMAT;
 
-    // -- IMPORTANT CONFIG VALUES -- //
-
+    // -- REDIS OBJECTS -- //
+    private boolean USE_REDIS;
     private String SERVER_CHANNEL;
-    private boolean USE_BUNGEE;
+    private String SERVER_ID;
 
-    // -- MUTE LIST -- //
+    private Redisson REDIS;
 
+    // -- REDIS DATA -- //'
+
+    private Queue<String> CHAT_QUEUE;
     private Set<String> MUTE_LIST;
 
     // -- BUKKIT ENABLE/DISABLE -- //
@@ -74,18 +76,9 @@ public class Chitchat extends JavaPlugin implements Listener, CommandExecutor {
         INST = this;
         FORMAT = new ChatFormat();
 
-        // Setup mute list
-        MUTE_LIST = new HashSet<>();
-
         // Handle config
         getConfig().options().copyDefaults(true);
         saveConfig();
-
-        // Get the server's chat channel
-        SERVER_CHANNEL = getConfig().getString("bungee_channel", "default");
-
-        // Will we use bungee?
-        USE_BUNGEE = getConfig().getBoolean("use_bungee", true);
 
         // Default tags
         if(getConfig().getBoolean("use_examples", true)) {
@@ -103,6 +96,41 @@ public class Chitchat extends JavaPlugin implements Listener, CommandExecutor {
         getCommand("ccreload").setExecutor(this);
         getCommand("ccmute").setExecutor(this);
         getCommand("ccunmute").setExecutor(this);
+
+        // Will we use redis?
+        USE_REDIS = getConfig().getBoolean("redis.use", true);
+
+        // Redis stuff
+        if (USE_REDIS) {
+            // Get the server's id and chat channel
+            SERVER_ID = getConfig().getString("redis.server_id", "minecraft");
+            SERVER_CHANNEL = getConfig().getString("redis.channel", "default");
+
+            // Configure and connect to redis
+            Config config = new Config();
+            config.useSingleServer().setAddress(getConfig().getString("redis.connection", "127.0.0.1:6379"));
+            REDIS = Redisson.create(config);
+
+            // Setup chat queue
+            CHAT_QUEUE = REDIS.getQueue(SERVER_CHANNEL + "\\$" + "chat");
+
+            // Setup mute list
+            MUTE_LIST = REDIS.getSet(SERVER_CHANNEL + "\\$" + "mute");
+
+            // Start redis listen task
+            getServer().getScheduler().scheduleSyncRepeatingTask(this, new RedisListenTask(), 20, 1);
+
+            // Make sure everything connected, if not, disable the plugin
+            if (CHAT_QUEUE != null) {
+                getLogger().info("Redis connection was successful.");
+            } else {
+                getLogger().severe("Redis connection was unsuccessful!");
+                getServer().getPluginManager().disablePlugin(this);
+            }
+        } else {
+            // Setup mute list
+            MUTE_LIST = new HashSet<>();
+        }
     }
 
     @Override
@@ -155,9 +183,29 @@ public class Chitchat extends JavaPlugin implements Listener, CommandExecutor {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onFinalChat(AsyncPlayerChatEvent chat) {
-        if (USE_BUNGEE && !FORMAT.shouldCancelBungee(chat)) {
-            String channelRaw = "chitchat$" + chat.getPlayer().getUniqueId().toString() + "$" + SERVER_CHANNEL;
-            sendBungeeMessage(chat.getPlayer(), "Forward", "ALL", channelRaw, chat.getFormat());
+        if (USE_REDIS && !FORMAT.shouldCancelRedis(chat)) {
+            CHAT_QUEUE.add(SERVER_ID + "\\$" + chat.getFormat());
+        }
+    }
+
+    // -- REDIS LISTEN TASK -- //
+
+    public class RedisListenTask implements Runnable {
+        private String lastMessage = "";
+        private long lastTime = System.currentTimeMillis();
+
+        @Override
+        public void run() {
+            String message = CHAT_QUEUE.peek();
+            if (lastMessage.equals(message)) {
+                if (lastTime <= System.currentTimeMillis() - 200) {
+                    CHAT_QUEUE.remove(lastMessage);
+                }
+            } else if (message != null && !message.startsWith(SERVER_ID + "\\$")) {
+                Bukkit.broadcastMessage(message.substring(message.indexOf('$') + 1));
+                lastMessage = message;
+                lastTime = System.currentTimeMillis();
+            }
         }
     }
 
@@ -178,18 +226,13 @@ public class Chitchat extends JavaPlugin implements Listener, CommandExecutor {
             case "ccunmute": {
                 if (sender instanceof Player && sender.hasPermission("chitchat.mute")) {
                     if (args.length > 0) {
-                        String channelRaw = "chitchat";
                         if (command.getName().equals("ccmute")) {
                             MUTE_LIST.add(args[0]);
-                            channelRaw += "mute$";
                             sender.sendMessage(ChatColor.YELLOW + "Muted " + args[0]);
                         } else {
                             MUTE_LIST.remove(args[0]);
-                            channelRaw += "unmute$";
                             sender.sendMessage(ChatColor.YELLOW + "Unmuted " + args[0]);
                         }
-                        channelRaw += args[0] + "$" + SERVER_CHANNEL;
-                        sendBungeeMessage((Player) sender, "Forward", "ALL", channelRaw, "");
                     } else {
                         return false;
                     }
@@ -202,29 +245,5 @@ public class Chitchat extends JavaPlugin implements Listener, CommandExecutor {
                 return false;
             }
         }
-    }
-
-    // -- PRIVATE HELPER METHODS -- //
-
-    private void sendBungeeMessage(Player target, String messageType, String targetServer, String channel, String message) {
-        ByteArrayDataOutput out = ByteStreams.newDataOutput();
-
-        out.writeUTF(messageType);
-        out.writeUTF(targetServer);
-        out.writeUTF(channel);
-
-        ByteArrayOutputStream msgbytes = new ByteArrayOutputStream();
-        DataOutputStream msgout = new DataOutputStream(msgbytes);
-
-        try {
-            msgout.writeUTF(message);
-        } catch (IOException ignored) {
-        }
-
-        // Write the message
-        out.writeShort(msgbytes.toByteArray().length);
-        out.write(msgbytes.toByteArray());
-
-        target.sendPluginMessage(this, "BungeeCord", out.toByteArray());
     }
 }
