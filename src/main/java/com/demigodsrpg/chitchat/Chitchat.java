@@ -28,6 +28,7 @@ import com.demigodsrpg.chitchat.format.ChatFormat;
 import com.demigodsrpg.chitchat.tag.DefaultPlayerTag;
 import com.demigodsrpg.chitchat.tag.SpecificPlayerTag;
 import com.demigodsrpg.chitchat.tag.WorldPlayerTag;
+import com.demigodsrpg.chitchat.util.LibraryHandler;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -55,6 +56,7 @@ public class Chitchat extends JavaPlugin implements Listener, CommandExecutor {
 
     private static Chitchat INST;
     private static ChatFormat FORMAT;
+    private static LibraryHandler LIBRARIES;
 
     // -- REDIS OBJECTS -- //
     private boolean USE_REDIS;
@@ -72,9 +74,10 @@ public class Chitchat extends JavaPlugin implements Listener, CommandExecutor {
 
     @Override
     public void onEnable() {
-        // Define static instance
+        // Define static objects
         INST = this;
         FORMAT = new ChatFormat();
+        LIBRARIES = new LibraryHandler(this);
 
         // Handle config
         getConfig().options().copyDefaults(true);
@@ -102,6 +105,14 @@ public class Chitchat extends JavaPlugin implements Listener, CommandExecutor {
 
         // Redis stuff
         if (USE_REDIS) {
+            // Add the required libraries
+            LIBRARIES.addMavenLibrary(LibraryHandler.MAVEN_CENTRAL, "org.redisson", "redisson", "1.2.0");
+            LIBRARIES.addMavenLibrary(LibraryHandler.MAVEN_CENTRAL, "org.slf4j", "slf4j-api", "1.7.10");
+            LIBRARIES.addMavenLibrary(LibraryHandler.MAVEN_CENTRAL, "com.esotericsoftware", "kryo", "3.0.0");
+            LIBRARIES.addMavenLibrary(LibraryHandler.MAVEN_CENTRAL, "com.fasterxml.jackson.core", "jackson-core", "2.4.4");
+            LIBRARIES.addMavenLibrary(LibraryHandler.MAVEN_CENTRAL, "com.fasterxml.jackson.core", "jackson-annotations", "2.4.4");
+            LIBRARIES.addMavenLibrary(LibraryHandler.MAVEN_CENTRAL, "com.fasterxml.jackson.core", "jackson-databind", "2.4.4");
+
             // Get the server's id and chat channel
             SERVER_ID = getConfig().getString("redis.server_id", "minecraft");
             SERVER_CHANNEL = getConfig().getString("redis.channel", "default");
@@ -117,17 +128,22 @@ public class Chitchat extends JavaPlugin implements Listener, CommandExecutor {
             // Setup mute list
             MUTE_LIST = REDIS.getSet(SERVER_CHANNEL + "\\$" + "mute");
 
-            // Start redis listen task
-            getServer().getScheduler().scheduleSyncRepeatingTask(this, new RedisListenTask(), 20, 1);
-
             // Make sure everything connected, if not, disable the plugin
-            if (CHAT_QUEUE != null) {
+            try {
+                // Try to peek at the chat queue
+                CHAT_QUEUE.peek();
                 getLogger().info("Redis connection was successful.");
-            } else {
+
+                // Start redis listen task
+                getServer().getScheduler().scheduleSyncRepeatingTask(this, new RedisListenTask(), 20, 1);
+            } catch (Exception ignored) {
                 getLogger().severe("Redis connection was unsuccessful!");
-                getServer().getPluginManager().disablePlugin(this);
+                getLogger().severe("Disabling all Redis features.");
+                USE_REDIS = false;
             }
-        } else {
+        }
+
+        if (!USE_REDIS) {
             // Setup mute list
             MUTE_LIST = new HashSet<>();
         }
