@@ -27,3 +27,5 @@ permisions:
     default: op
   chitchat.color:
     default: false
+  chitchat.msg:
+    default: true
