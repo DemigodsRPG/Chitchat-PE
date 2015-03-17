@@ -338,7 +338,7 @@ public class Chitchat extends JavaPlugin implements Listener, CommandExecutor {
                         if (lastSendMsgKey != null) {
                             receiver = lastSendMsgKey.split("\\$")[2];
                         } else {
-                            sender.sendMessage(ChatColor.RED + "Your last sent message has timed out, use /msg instead.");
+                            sender.sendMessage(ChatColor.RED + "You have to reply to someone to use /r.");
                             return true;
                         }
                     } else {
@@ -365,7 +365,7 @@ public class Chitchat extends JavaPlugin implements Listener, CommandExecutor {
     private String getLastSentMsgKey(CommandSender sender) {
         for (String key : MSG_MAP.keySet()) {
             String[] meta = key.split("\\$");
-            if (meta[1].equals("false") && meta[3].equals(sender.getName())) {
+            if (meta[1].equals("false") && meta[2].equals(sender.getName())) {
                 MSG_MAP.remove(key);
                 return key;
             }
