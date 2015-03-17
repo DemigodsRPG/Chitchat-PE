@@ -1,18 +1,23 @@
-name: Chitchat
+name: ${project.name}
 main: com.demigodsrpg.chitchat.Chitchat
-version: 1.1.0
+version: ${project.version}
 description: The simplest plugin for chitchat.
 authors: [HmmmQuestionMark]
 commands:
   ccreload:
     usage: /ccreload
-    aliases: [ccr]
   ccmute:
     usage: /ccmute <player>
     aliases: [ccm]
   ccunmute:
     usage: /ccunmute <player>
     aliases: [ccum]
+  ccmsg:
+    usage: /ccmsg <player> <message>
+    aliases: [msg, pm]
+  ccret:
+    usage: /ccret <message>
+    aliases: [ccr, ret, r]
 permisions:
   chitchat.reload:
     default: op

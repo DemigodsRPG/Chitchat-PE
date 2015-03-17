@@ -29,7 +29,6 @@ import com.demigodsrpg.chitchat.tag.PlayerTag;
 import com.google.common.collect.ImmutableList;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -41,7 +40,7 @@ import java.util.List;
 public class ChatFormat {
     // -- IMPORTANT DATA -- //
 
-    private final List<PlayerTag> playerTags = new LinkedList<PlayerTag>();
+    private final List<PlayerTag> playerTags = new LinkedList<>();
     private final String format;
 
     // -- CONSTRUCTORS -- //
@@ -167,12 +166,12 @@ public class ChatFormat {
     /**
      * Should this message not be sent over bungee?
      *
-     * @param chat The chat event.
+     * @param player The player.
      * @return If the message should be sent over bungee.
      */
-    public boolean shouldCancelRedis(AsyncPlayerChatEvent chat) {
+    public boolean shouldCancelRedis(Player player) {
         for (PlayerTag tag : getPlayerTags()) {
-            if (tag.cancelRedis(chat.getPlayer())) {
+            if (tag.cancelRedis(player)) {
                 return true;
             }
         }

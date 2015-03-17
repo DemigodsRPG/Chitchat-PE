@@ -29,6 +29,7 @@ import com.demigodsrpg.chitchat.tag.DefaultPlayerTag;
 import com.demigodsrpg.chitchat.tag.SpecificPlayerTag;
 import com.demigodsrpg.chitchat.tag.WorldPlayerTag;
 import com.demigodsrpg.chitchat.util.LibraryHandler;
+import com.google.common.base.Joiner;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -40,13 +41,16 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.redisson.Config;
 import org.redisson.Redisson;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The simplest plugin for chitchat.
@@ -57,18 +61,21 @@ public class Chitchat extends JavaPlugin implements Listener, CommandExecutor {
     private static Chitchat INST;
     private static ChatFormat FORMAT;
     private static LibraryHandler LIBRARIES;
+    private Redisson REDIS;
 
-    // -- REDIS OBJECTS -- //
+    // -- OPTIONS -- //
+
+    private boolean OVERRIDE_ME;
     private boolean USE_REDIS;
     private String SERVER_CHANNEL;
     private String SERVER_ID;
 
-    private Redisson REDIS;
-
-    // -- REDIS DATA -- //'
+    // -- REDIS DATA -- //
 
     private Queue<String> CHAT_QUEUE;
+    private Map<String, String> MSG_MAP;
     private Set<String> MUTE_LIST;
+
 
     // -- BUKKIT ENABLE/DISABLE -- //
 
@@ -82,6 +89,9 @@ public class Chitchat extends JavaPlugin implements Listener, CommandExecutor {
         // Handle config
         getConfig().options().copyDefaults(true);
         saveConfig();
+
+        // Override /me
+        OVERRIDE_ME = getConfig().getBoolean("override_me", true);
 
         // Default tags
         if(getConfig().getBoolean("use_examples", true)) {
@@ -99,6 +109,8 @@ public class Chitchat extends JavaPlugin implements Listener, CommandExecutor {
         getCommand("ccreload").setExecutor(this);
         getCommand("ccmute").setExecutor(this);
         getCommand("ccunmute").setExecutor(this);
+        getCommand("ccmsg").setExecutor(this);
+        getCommand("ccret").setExecutor(this);
 
         // Will we use redis?
         USE_REDIS = getConfig().getBoolean("redis.use", true);
@@ -123,10 +135,13 @@ public class Chitchat extends JavaPlugin implements Listener, CommandExecutor {
             REDIS = Redisson.create(config);
 
             // Setup chat queue
-            CHAT_QUEUE = REDIS.getQueue(SERVER_CHANNEL + "\\$" + "chat");
+            CHAT_QUEUE = REDIS.getQueue(SERVER_CHANNEL + "$" + "chat");
+
+            // Setup message map
+            MSG_MAP = REDIS.getMap(SERVER_CHANNEL + "$" + "msg");
 
             // Setup mute list
-            MUTE_LIST = REDIS.getSet(SERVER_CHANNEL + "\\$" + "mute");
+            MUTE_LIST = REDIS.getSet(SERVER_CHANNEL + "$" + "mute");
 
             // Make sure everything connected, if not, disable the plugin
             try {
@@ -135,7 +150,7 @@ public class Chitchat extends JavaPlugin implements Listener, CommandExecutor {
                 getLogger().info("Redis connection was successful.");
 
                 // Start redis listen task
-                getServer().getScheduler().scheduleSyncRepeatingTask(this, new RedisListenTask(), 20, 1);
+                getServer().getScheduler().scheduleAsyncRepeatingTask(this, new RedisChatListenTask(), 20, 1);
             } catch (Exception ignored) {
                 getLogger().severe("Redis connection was unsuccessful!");
                 getLogger().severe("Disabling all Redis features.");
@@ -144,9 +159,15 @@ public class Chitchat extends JavaPlugin implements Listener, CommandExecutor {
         }
 
         if (!USE_REDIS) {
+            // Setup msg queue
+            MSG_MAP = new ConcurrentHashMap<>();
+
             // Setup mute list
             MUTE_LIST = new HashSet<>();
         }
+
+        // Start msg task
+        getServer().getScheduler().scheduleAsyncRepeatingTask(this, new MsgListenTask(), 20, 1);
     }
 
     @Override
@@ -199,14 +220,34 @@ public class Chitchat extends JavaPlugin implements Listener, CommandExecutor {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onFinalChat(AsyncPlayerChatEvent chat) {
-        if (USE_REDIS && !FORMAT.shouldCancelRedis(chat)) {
-            CHAT_QUEUE.add(SERVER_ID + "\\$" + chat.getFormat());
+        if (USE_REDIS && !FORMAT.shouldCancelRedis(chat.getPlayer())) {
+            CHAT_QUEUE.add(SERVER_ID + "$" + chat.getFormat());
         }
     }
 
-    // -- REDIS LISTEN TASK -- //
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onMeCommand(PlayerCommandPreprocessEvent command) {
+        if (OVERRIDE_ME) {
+            Player player = command.getPlayer();
+            String message = command.getMessage().substring(1);
 
-    public class RedisListenTask implements Runnable {
+            // -- /me -- //
+            if (message.startsWith("me ")) {
+                command.setCancelled(true);
+                if (!MUTE_LIST.contains(player.getName())) {
+                    message = ChatColor.ITALIC + ChatColor.stripColor(player.getDisplayName() + " " + message.substring(3));
+                    if (USE_REDIS && !FORMAT.shouldCancelRedis(player)) {
+                        CHAT_QUEUE.add(SERVER_ID + "$" + message);
+                    }
+                    Bukkit.broadcastMessage(message);
+                }
+            }
+        }
+    }
+
+    // -- REDIS LISTEN TASKS -- //
+
+    public class RedisChatListenTask implements Runnable {
         private String lastMessage = "";
         private long lastTime = System.currentTimeMillis();
 
@@ -217,10 +258,37 @@ public class Chitchat extends JavaPlugin implements Listener, CommandExecutor {
                 if (lastTime <= System.currentTimeMillis() - 200) {
                     CHAT_QUEUE.remove(lastMessage);
                 }
-            } else if (message != null && !message.startsWith(SERVER_ID + "\\$")) {
+            } else if (message != null && !message.startsWith(SERVER_ID + "$")) {
                 Bukkit.broadcastMessage(message.substring(message.indexOf('$') + 1));
                 lastMessage = message;
                 lastTime = System.currentTimeMillis();
+            }
+        }
+    }
+
+    public class MsgListenTask implements Runnable {
+        private static final long EXPIRE_TIME = 120000;
+
+        @Override
+        public void run() {
+            for (Map.Entry<String, String> message : MSG_MAP.entrySet()) {
+                String[] meta = message.getKey().split("\\$");
+                long sent = Long.valueOf(meta[0]);
+                if (System.currentTimeMillis() >= sent + EXPIRE_TIME) {
+                    MSG_MAP.remove(message.getKey());
+                    continue;
+                }
+                if (meta[1].equals("true")) {
+                    for (Player player : Bukkit.getOnlinePlayers()) {
+                        if (player.getName().equalsIgnoreCase(meta[2])) {
+                            player.sendMessage(ChatColor.GRAY + "->[" + meta[3] + "]: " + message.getValue());
+                            meta[1] = "false";
+                            MSG_MAP.remove(message.getKey());
+                            MSG_MAP.put(Joiner.on('$').join(meta), message.getValue());
+                            break;
+                        }
+                    }
+                }
             }
         }
     }
@@ -235,8 +303,8 @@ public class Chitchat extends JavaPlugin implements Listener, CommandExecutor {
                     getServer().getPluginManager().enablePlugin(this);
                 } else {
                     sender.sendMessage(ChatColor.RED + "You don't have permission to use that command.");
-                    return true;
                 }
+                return true;
             }
             case "ccmute":
             case "ccunmute": {
@@ -257,9 +325,51 @@ public class Chitchat extends JavaPlugin implements Listener, CommandExecutor {
                 }
                 return true;
             }
+            case "ccret":
+            case "ccmsg": {
+                if (sender.hasPermission("chitchat.msg") && !MUTE_LIST.contains(sender.getName())) {
+                    String receiver;
+                    String message = Joiner.on(" ").join(args);
+                    if ("ccmsg".equals(command.getName()) && args.length > 1) {
+                        receiver = args[0];
+                        message = message.substring(receiver.length() + 1);
+                    } else if ("ccret".equals(command.getName()) && args.length > 0) {
+                        String lastSendMsgKey = getLastSentMsgKey(sender);
+                        if (lastSendMsgKey != null) {
+                            receiver = lastSendMsgKey.split("\\$")[2];
+                        } else {
+                            sender.sendMessage(ChatColor.RED + "Your last sent message has timed out, use /msg instead.");
+                            return true;
+                        }
+                    } else {
+                        sender.sendMessage(ChatColor.RED + "You've made a mistake with the syntax");
+                        return false;
+                    }
+                    String key = System.currentTimeMillis() + "" + "$" + "true" + "$" + receiver + "$" + sender.getName();
+                    MSG_MAP.put(key, message);
+                    sender.sendMessage(ChatColor.GRAY + "<-[" + sender.getName() + "]: " + message);
+                    return true;
+                } else {
+                    sender.sendMessage(ChatColor.RED + "You don't have permission to use that command.");
+                    return true;
+                }
+            }
             default: {
                 return false;
             }
         }
+    }
+
+    // -- PRIVATE HELPER METHODS -- //
+
+    private String getLastSentMsgKey(CommandSender sender) {
+        for (String key : MSG_MAP.keySet()) {
+            String[] meta = key.split("\\$");
+            if (meta[1].equals("false") && meta[3].equals(sender.getName())) {
+                MSG_MAP.remove(key);
+                return key;
+            }
+        }
+        return null;
     }
 }

@@ -19,12 +19,14 @@ public class LibraryHandler {
 
     private final List<String> FILE_NAMES;
     private final Plugin PLUGIN;
+    private final File LIB_DIRECTORY;
 
     // -- CONSTRUCTOR -- //
 
     public LibraryHandler(Plugin plugin) {
         this.PLUGIN = plugin;
         FILE_NAMES = new ArrayList<>();
+        LIB_DIRECTORY = new File(PLUGIN.getDataFolder().getPath() + "/lib");
         checkDirectory();
     }
 
@@ -40,22 +42,19 @@ public class LibraryHandler {
     }
 
     public void checkDirectory() {
-        // Get the file
-        File libraryDirectory = new File(PLUGIN.getDataFolder().getPath() + "/lib");
-
         // If it exists and isn't a directory, throw an error
-        if (libraryDirectory.exists() && !libraryDirectory.isDirectory()) {
+        if (LIB_DIRECTORY.exists() && !LIB_DIRECTORY.isDirectory()) {
             PLUGIN.getLogger().severe("The library directory isn't a directory!");
             return;
         }
         // Otherwise, make the directory
-        else if (!libraryDirectory.exists()) {
-            libraryDirectory.mkdirs();
+        else if (!LIB_DIRECTORY.exists()) {
+            LIB_DIRECTORY.mkdirs();
         }
 
         // Check if all libraries exist
 
-        File[] filesArray = libraryDirectory.listFiles();
+        File[] filesArray = LIB_DIRECTORY.listFiles();
         List<File> files = Arrays.asList(filesArray != null ? filesArray : new File[]{});
 
         for (File file : files) {
@@ -66,20 +65,16 @@ public class LibraryHandler {
     }
 
     public void loadLibrary(String fileName, URL url) {
-        // Get the file
-        File libraryDirectory = new File(PLUGIN.getDataFolder().getPath() + "/lib");
-
-
         // Check if the files are found or not
         File libraryFile = null;
         if (FILE_NAMES.contains(fileName)) {
-            libraryFile = new File(libraryDirectory + "/" + fileName);
+            libraryFile = new File(LIB_DIRECTORY + "/" + fileName);
         }
 
         // If they aren't found, download them
         if (libraryFile == null) {
             PLUGIN.getLogger().warning(fileName + " is missing, downloading now.");
-            libraryFile = downloadLibrary(libraryDirectory, fileName, url);
+            libraryFile = downloadLibrary(fileName, url);
         }
 
         // Add the library to the classpath
@@ -95,9 +90,9 @@ public class LibraryHandler {
         }
     }
 
-    public File downloadLibrary(File libraryDirectory, String libraryFileName, URL libraryUrl) {
+    public File downloadLibrary(String libraryFileName, URL libraryUrl) {
         // Get the file
-        File libraryFile = new File(libraryDirectory.getPath() + "/" + libraryFileName);
+        File libraryFile = new File(LIB_DIRECTORY.getPath() + "/" + libraryFileName);
 
         // Create the streams
         BufferedInputStream in = null;
