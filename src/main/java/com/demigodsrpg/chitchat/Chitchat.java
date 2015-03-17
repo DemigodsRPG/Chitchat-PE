@@ -348,6 +348,7 @@ public class Chitchat extends JavaPlugin implements Listener, CommandExecutor {
                     String key = System.currentTimeMillis() + "" + "$" + "true" + "$" + receiver + "$" + sender.getName();
                     MSG_MAP.put(key, message);
                     sender.sendMessage(ChatColor.GRAY + "<-[" + sender.getName() + "]: " + message);
+                    getLogger().info("[" + sender.getName() + " -> " + receiver + "]: " + message);
                     return true;
                 } else {
                     sender.sendMessage(ChatColor.RED + "You don't have permission to use that command.");
