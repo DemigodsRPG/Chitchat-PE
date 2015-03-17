@@ -338,7 +338,7 @@ public class Chitchat extends JavaPlugin implements Listener, CommandExecutor {
                         if (lastSendMsgKey != null) {
                             receiver = lastSendMsgKey.split("\\$")[3];
                         } else {
-                            sender.sendMessage(ChatColor.RED + "You have to reply to someone to use /r.");
+                            sender.sendMessage(ChatColor.RED + "This is not a reply, please use /msg instead.");
                             return true;
                         }
                     } else {
