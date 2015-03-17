@@ -335,7 +335,7 @@ public class Chitchat extends JavaPlugin implements Listener, CommandExecutor {
                         message = message.substring(receiver.length() + 1);
                     } else if ("ccret".equals(command.getName()) && args.length > 0) {
                         String lastSendMsgKey = getLastSentMsgKey(sender);
-                        if (lastSendMsgKey != null) {
+                        if (!"".equals(lastSendMsgKey)) {
                             receiver = lastSendMsgKey.split("\\$")[3];
                         } else {
                             sender.sendMessage(ChatColor.RED + "This is not a reply, please use /msg instead.");
@@ -363,13 +363,19 @@ public class Chitchat extends JavaPlugin implements Listener, CommandExecutor {
     // -- PRIVATE HELPER METHODS -- //
 
     private String getLastSentMsgKey(CommandSender sender) {
+        String newest = "";
+        long newestSent = 0;
         for (String key : MSG_MAP.keySet()) {
             String[] meta = key.split("\\$");
             if (meta[1].equals("false") && meta[2].equals(sender.getName())) {
-                MSG_MAP.remove(key);
-                return key;
+                long sent = Long.parseLong(meta[0]);
+                if (sent > newestSent) {
+                    MSG_MAP.remove(newest);
+                    newest = key;
+                    newestSent = sent;
+                }
             }
         }
-        return null;
+        return newest;
     }
 }
