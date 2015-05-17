@@ -15,9 +15,9 @@ commands:
   ccmsg:
     usage: /ccmsg <player> <message>
     aliases: [msg, pm]
-  ccret:
-    usage: /ccret <message>
-    aliases: [ccr, ret, r]
+  ccreply:
+    usage: /ccreply <message>
+    aliases: [ccr, rep, r]
 permisions:
   chitchat.reload:
     default: op
