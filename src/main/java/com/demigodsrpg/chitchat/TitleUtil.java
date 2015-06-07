@@ -87,7 +87,7 @@ public class TitleUtil {
                 subtitle = ChatColor.translateAlternateColorCodes('&', subtitle);
                 Object titleSub = ICHAT_A.invoke(null, "{\"text\": \"" + subtitle + "\"}");
                 Object packetPlayOutSubTitle = NMS_PACKET_PLAY_TITLE.getConstructor(NMS_TITLE_ACTION, NMS_ICHAT_BASE).
-                        newInstance(ACTION_ARRAY[0], titleSub);
+                        newInstance(ACTION_ARRAY[1], titleSub);
                 SEND_PACKET.invoke(connection, packetPlayOutSubTitle);
             }
 
@@ -96,7 +96,7 @@ public class TitleUtil {
                 title = ChatColor.translateAlternateColorCodes('&', title);
                 Object titleMain = ICHAT_A.invoke(null, "{\"text\": \"" + title + "\"}");
                 Object packetPlayOutTitle = NMS_PACKET_PLAY_TITLE.getConstructor(NMS_TITLE_ACTION, NMS_ICHAT_BASE).
-                        newInstance(ACTION_ARRAY[1], titleMain);
+                        newInstance(ACTION_ARRAY[0], titleMain);
                 SEND_PACKET.invoke(connection, packetPlayOutTitle);
             }
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | InstantiationException oops) {
