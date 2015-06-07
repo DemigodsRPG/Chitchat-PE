@@ -9,7 +9,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 @SuppressWarnings("unchecked")
-class TitleUtil {
+public class TitleUtil {
     final String NMS;
     final String CB;
 
@@ -27,6 +27,8 @@ class TitleUtil {
     final Method ICHAT_A;
 
     final Field PLAYER_CONN;
+
+    final Object[] ACTION_ARRAY;
 
     TitleUtil() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InstantiationException, NoSuchFieldException {
         String name = Bukkit.getServer().getClass().getPackage().getName();
@@ -53,16 +55,31 @@ class TitleUtil {
 
         // Fields being used
         PLAYER_CONN = NMS_ENTITY_PLAYER.getDeclaredField("playerConnection");
+
+        // Title action array
+        ACTION_ARRAY = NMS_TITLE_ACTION.getEnumConstants();
     }
 
+    /**
+     * Send a title message to a player.
+     *
+     * @param player       The player receiving the message.
+     * @param fadeInTicks  The ticks the message takes to fade in.
+     * @param stayTicks    The ticks the message stays on screen (sans fades).
+     * @param fadeOutTicks The ticks the message takes to fade out.
+     * @param title        The title text.
+     * @param subtitle     The subtitle text.
+     */
     void sendTitle(Player player, int fadeInTicks, int stayTicks, int fadeOutTicks, String title, String subtitle) {
         try {
+            clearTitle(player, true);
+
             Object craftPlayer = CB_CRAFTPLAYER.cast(player);
             Object entityPlayer = GET_HANDLE.invoke(craftPlayer);
             Object connection = PLAYER_CONN.get(entityPlayer);
 
             Object packetPlayOutTimes = NMS_PACKET_PLAY_TITLE.getConstructor(NMS_TITLE_ACTION, NMS_ICHAT_BASE, Integer.TYPE, Integer.TYPE, Integer.TYPE).
-                    newInstance(Enum.valueOf(NMS_TITLE_ACTION, "TIMES"), null, fadeInTicks, stayTicks, fadeOutTicks);
+                    newInstance(ACTION_ARRAY[2], null, fadeInTicks, stayTicks, fadeOutTicks);
             SEND_PACKET.invoke(connection, packetPlayOutTimes);
 
             if (subtitle != null) {
@@ -70,7 +87,7 @@ class TitleUtil {
                 subtitle = ChatColor.translateAlternateColorCodes('&', subtitle);
                 Object titleSub = ICHAT_A.invoke(null, "{\"text\": \"" + subtitle + "\"}");
                 Object packetPlayOutSubTitle = NMS_PACKET_PLAY_TITLE.getConstructor(NMS_TITLE_ACTION, NMS_ICHAT_BASE).
-                        newInstance(Enum.valueOf(NMS_TITLE_ACTION, "SUBTITLE"), titleSub);
+                        newInstance(ACTION_ARRAY[0], titleSub);
                 SEND_PACKET.invoke(connection, packetPlayOutSubTitle);
             }
 
@@ -79,10 +96,30 @@ class TitleUtil {
                 title = ChatColor.translateAlternateColorCodes('&', title);
                 Object titleMain = ICHAT_A.invoke(null, "{\"text\": \"" + title + "\"}");
                 Object packetPlayOutTitle = NMS_PACKET_PLAY_TITLE.getConstructor(NMS_TITLE_ACTION, NMS_ICHAT_BASE).
-                        newInstance(Enum.valueOf(NMS_TITLE_ACTION, "TIMES"), titleMain);
+                        newInstance(ACTION_ARRAY[1], titleMain);
                 SEND_PACKET.invoke(connection, packetPlayOutTitle);
             }
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | InstantiationException oops) {
+            oops.printStackTrace();
+        }
+    }
+
+    /**
+     * Clear or reset the title data for a specified player.
+     *
+     * @param player The player being cleared/reset.
+     * @param reset  True if reset, false for clear.
+     */
+    void clearTitle(final Player player, boolean reset) {
+        try {
+            Object craftPlayer = CB_CRAFTPLAYER.cast(player);
+            Object entityPlayer = GET_HANDLE.invoke(craftPlayer);
+            Object connection = PLAYER_CONN.get(entityPlayer);
+
+            Object packetPlayOutClear = NMS_PACKET_PLAY_TITLE.getConstructor(NMS_TITLE_ACTION, NMS_ICHAT_BASE).
+                    newInstance(ACTION_ARRAY[reset ? 4 : 3], null);
+            SEND_PACKET.invoke(connection, packetPlayOutClear);
+        } catch (Exception oops) {
             oops.printStackTrace();
         }
     }

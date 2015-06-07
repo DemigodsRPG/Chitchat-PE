@@ -41,7 +41,6 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
-import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -203,6 +202,30 @@ public class Chitchat extends JavaPlugin implements Listener {
         return INST;
     }
 
+    /**
+     * Send a title message to a player.
+     *
+     * @param player       The player receiving the message.
+     * @param fadeInTicks  The ticks the message takes to fade in.
+     * @param stayTicks    The ticks the message stays on screen (sans fades).
+     * @param fadeOutTicks The ticks the message takes to fade out.
+     * @param title        The title text.
+     * @param subtitle     The subtitle text.
+     */
+    public static void sendTitle(Player player, int fadeInTicks, int stayTicks, int fadeOutTicks, String title, String subtitle) {
+        TITLE.sendTitle(player, fadeInTicks, stayTicks, fadeOutTicks, title, subtitle);
+    }
+
+    /**
+     * Clear or reset the title data for a specified player.
+     *
+     * @param player The player being cleared/reset.
+     * @param reset  True if reset, false for clear.
+     */
+    public static void clearTitle(final Player player, boolean reset) {
+        TITLE.clearTitle(player, reset);
+    }
+
     // -- BUKKIT CHAT LISTENER -- //
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -232,12 +255,5 @@ public class Chitchat extends JavaPlugin implements Listener {
                 }
             }
         }
-    }
-
-    // FIXME DEBUG
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onPlayerDropItem(PlayerDropItemEvent event) {
-        TITLE.sendTitle(event.getPlayer(), 20, 120, 20, "TEST", "This is a test.");
-        event.getPlayer().sendMessage("TEST.");
     }
 }
