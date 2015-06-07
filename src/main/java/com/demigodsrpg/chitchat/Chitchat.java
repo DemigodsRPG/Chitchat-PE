@@ -41,6 +41,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -56,6 +57,7 @@ public class Chitchat extends JavaPlugin implements Listener {
     // -- STATIC OBJECTS -- //
 
     private static Chitchat INST;
+    private static PTitleUtil TITLE;
     static ChatFormat FORMAT;
     static LibraryHandler LIBRARIES;
 
@@ -134,6 +136,13 @@ public class Chitchat extends JavaPlugin implements Listener {
 
             // Setup private message map
             REPLY_MAP = new HashMap<>();
+        }
+
+        // FIXME DEBUG
+        try {
+            TITLE = new PTitleUtil();
+        } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | NoSuchFieldException e) {
+            e.printStackTrace();
         }
     }
 
@@ -223,5 +232,12 @@ public class Chitchat extends JavaPlugin implements Listener {
                 }
             }
         }
+    }
+
+    // FIXME DEBUG
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onPlayerDropItem(PlayerDropItemEvent event) {
+        TITLE.sendTitle(event.getPlayer(), 20, 120, 20, "TEST", "This is a test.");
+        event.getPlayer().sendMessage("TEST.");
     }
 }
