@@ -57,7 +57,7 @@ public class Chitchat extends JavaPlugin implements Listener {
     // -- STATIC OBJECTS -- //
 
     private static Chitchat INST;
-    private static PTitleUtil TITLE;
+    private static TitleUtil TITLE;
     static ChatFormat FORMAT;
     static LibraryHandler LIBRARIES;
 
@@ -140,7 +140,7 @@ public class Chitchat extends JavaPlugin implements Listener {
 
         // FIXME DEBUG
         try {
-            TITLE = new PTitleUtil();
+            TITLE = new TitleUtil();
         } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | NoSuchFieldException e) {
             e.printStackTrace();
         }

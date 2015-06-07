@@ -1,5 +1,6 @@
 package com.demigodsrpg.chitchat;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -8,7 +9,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 @SuppressWarnings("unchecked")
-public class PTitleUtil {
+class TitleUtil {
     final String NMS;
     final String CB;
 
@@ -27,20 +28,23 @@ public class PTitleUtil {
 
     final Field PLAYER_CONN;
 
-    PTitleUtil() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InstantiationException, NoSuchFieldException {
+    TitleUtil() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InstantiationException, NoSuchFieldException {
+        String name = Bukkit.getServer().getClass().getPackage().getName();
+        String version = name.substring(name.lastIndexOf('.') + 1) + ".";
+
         // Common classpaths
-        NMS = "net.minecraft.server.v${nms.version}";
-        CB = "org.bukkit.craftbukkit.v${nms.version}";
+        NMS = "net.minecraft.server." + version;
+        CB = "org.bukkit.craftbukkit." + version;
 
         // Classes being used
-        CB_CRAFTPLAYER = (Class<? extends Player>) Class.forName(CB + ".entity.CraftPlayer");
-        NMS_ENTITY_PLAYER = Class.forName(NMS + ".EntityPlayer");
-        NMS_PLAYER_CONN = Class.forName(NMS + ".PlayerConnection");
-        NMS_ICHAT_BASE = Class.forName(NMS + ".IChatBaseComponent");
-        NMS_PACKET = Class.forName(NMS + ".Packet");
-        NMS_PACKET_PLAY_TITLE = Class.forName(NMS + ".PacketPlayOutTitle");
-        NMS_TITLE_ACTION = (Class<? extends Enum>) Class.forName(NMS + ".PacketPlayOutTitle$EnumTitleAction");
-        NMS_CHAT_SERIALIZER = Class.forName(NMS + ".IChatBaseComponent$ChatSerializer");
+        CB_CRAFTPLAYER = (Class<? extends Player>) Class.forName(CB + "entity.CraftPlayer");
+        NMS_ENTITY_PLAYER = Class.forName(NMS + "EntityPlayer");
+        NMS_PLAYER_CONN = Class.forName(NMS + "PlayerConnection");
+        NMS_ICHAT_BASE = Class.forName(NMS + "IChatBaseComponent");
+        NMS_PACKET = Class.forName(NMS + "Packet");
+        NMS_PACKET_PLAY_TITLE = Class.forName(NMS + "PacketPlayOutTitle");
+        NMS_TITLE_ACTION = (Class<? extends Enum>) Class.forName(NMS + "PacketPlayOutTitle$EnumTitleAction");
+        NMS_CHAT_SERIALIZER = Class.forName(NMS + "IChatBaseComponent$ChatSerializer");
 
         // Methods being used
         GET_HANDLE = CB_CRAFTPLAYER.getMethod("getHandle");
@@ -51,32 +55,32 @@ public class PTitleUtil {
         PLAYER_CONN = NMS_ENTITY_PLAYER.getDeclaredField("playerConnection");
     }
 
-    public void sendTitle(Player player, int fadeInTicks, int stayTicks, int fadeOutTicks, String title, String subtitle) {
+    void sendTitle(Player player, int fadeInTicks, int stayTicks, int fadeOutTicks, String title, String subtitle) {
         try {
             Object craftPlayer = CB_CRAFTPLAYER.cast(player);
-            Object entityPlayer = NMS_ENTITY_PLAYER.cast(GET_HANDLE.invoke(craftPlayer));
-            Object connection = NMS_PLAYER_CONN.cast(PLAYER_CONN.get(entityPlayer));
+            Object entityPlayer = GET_HANDLE.invoke(craftPlayer);
+            Object connection = PLAYER_CONN.get(entityPlayer);
 
-            Object packetPlayOutTimes = NMS_PACKET_PLAY_TITLE.getConstructor(NMS_TITLE_ACTION, NMS_ICHAT_BASE, int.class, int.class, int.class).
+            Object packetPlayOutTimes = NMS_PACKET_PLAY_TITLE.getConstructor(NMS_TITLE_ACTION, NMS_ICHAT_BASE, Integer.TYPE, Integer.TYPE, Integer.TYPE).
                     newInstance(Enum.valueOf(NMS_TITLE_ACTION, "TIMES"), null, fadeInTicks, stayTicks, fadeOutTicks);
-            SEND_PACKET.invoke(NMS_PLAYER_CONN.cast(connection), NMS_PACKET.cast(packetPlayOutTimes));
+            SEND_PACKET.invoke(connection, packetPlayOutTimes);
 
             if (subtitle != null) {
                 subtitle = subtitle.replaceAll("%player%", player.getDisplayName());
                 subtitle = ChatColor.translateAlternateColorCodes('&', subtitle);
-                Object titleSub = NMS_ICHAT_BASE.cast(ICHAT_A.invoke(null, "{\"text\": \"" + subtitle + "\"}"));
+                Object titleSub = ICHAT_A.invoke(null, "{\"text\": \"" + subtitle + "\"}");
                 Object packetPlayOutSubTitle = NMS_PACKET_PLAY_TITLE.getConstructor(NMS_TITLE_ACTION, NMS_ICHAT_BASE).
                         newInstance(Enum.valueOf(NMS_TITLE_ACTION, "SUBTITLE"), titleSub);
-                SEND_PACKET.invoke(NMS_PLAYER_CONN.cast(connection), NMS_PACKET.cast(packetPlayOutSubTitle));
+                SEND_PACKET.invoke(connection, packetPlayOutSubTitle);
             }
 
             if (title != null) {
                 title = title.replaceAll("%player%", player.getDisplayName());
                 title = ChatColor.translateAlternateColorCodes('&', title);
-                Object titleMain = NMS_ICHAT_BASE.cast(ICHAT_A.invoke(null, "{\"text\": \"" + title + "\"}"));
+                Object titleMain = ICHAT_A.invoke(null, "{\"text\": \"" + title + "\"}");
                 Object packetPlayOutTitle = NMS_PACKET_PLAY_TITLE.getConstructor(NMS_TITLE_ACTION, NMS_ICHAT_BASE).
                         newInstance(Enum.valueOf(NMS_TITLE_ACTION, "TIMES"), titleMain);
-                SEND_PACKET.invoke(NMS_PLAYER_CONN.cast(connection), NMS_PACKET.cast(packetPlayOutTitle));
+                SEND_PACKET.invoke(connection, packetPlayOutTitle);
             }
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | InstantiationException oops) {
             oops.printStackTrace();
