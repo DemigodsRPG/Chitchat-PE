@@ -14,7 +14,7 @@
         <spigot.version>1.8.7-R0.1-SNAPSHOT</spigot.version>
         <redisson.version>1.2.0</redisson.version>
         <slf4j.version>1.7.10</slf4j.version>
-        <kyro.version>3.0.0</kyro.version>
+        <kryo.version>3.0.0</kryo.version>
         <jackson.version>2.4.4</jackson.version>
     </properties>
 
@@ -50,7 +50,7 @@
         <dependency>
             <groupId>com.esotericsoftware</groupId>
             <artifactId>kryo</artifactId>
-            <version>${kyro.version}</version>
+            <version>${kryo.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
