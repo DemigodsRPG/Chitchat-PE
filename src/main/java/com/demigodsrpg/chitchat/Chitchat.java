@@ -253,7 +253,7 @@ public class Chitchat extends JavaPlugin implements Listener {
         }
 
         // /me <message>
-        else if (OVERRIDE_ME && commandMsg.length > 1) {
+        else if (OVERRIDE_ME && commandMsg.length > 1 && commandMsg[0].equals("/me")) {
             command.setCancelled(true);
             if (MUTED_COMMANDS.contains("me") && MUTE_SET.contains(player.getName())) {
                 player.sendMessage(ChatColor.RED + "I'm sorry " + player.getName() + ", I'm afraid I can't do that.");
