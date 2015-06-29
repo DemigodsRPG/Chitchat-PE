@@ -13,10 +13,10 @@ public class CCMuteCommand implements CommandExecutor {
         if (sender instanceof Player && sender.hasPermission("chitchat.mute")) {
             if (args.length > 0) {
                 if (command.getName().equals("ccmute")) {
-                    Chitchat.getInst().getMuteSet().add(args[0]);
+                    Chitchat.getMuteSet().add(args[0]);
                     sender.sendMessage(ChatColor.YELLOW + "Muted " + args[0]);
                 } else {
-                    Chitchat.getInst().getMuteSet().remove(args[0]);
+                    Chitchat.getMuteSet().remove(args[0]);
                     sender.sendMessage(ChatColor.YELLOW + "Unmuted " + args[0]);
                 }
             } else {

@@ -6,3 +6,8 @@ redis:
   server_id: 'minecraft'
 format: '+tags&7+displayname&7: &f+message'
 override_me: true
+muted-commands:
+  - me
+  - ccmsg
+  - ccreply
+  - poke

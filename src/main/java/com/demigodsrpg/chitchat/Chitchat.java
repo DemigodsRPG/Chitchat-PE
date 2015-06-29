@@ -41,13 +41,11 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * The simplest plugin for chitchat.
@@ -68,6 +66,7 @@ public class Chitchat extends JavaPlugin implements Listener {
 
     boolean OVERRIDE_ME;
     boolean USE_REDIS;
+    List<String> MUTED_COMMANDS;
 
     // -- BUKKIT ENABLE/DISABLE -- //
 
@@ -84,6 +83,9 @@ public class Chitchat extends JavaPlugin implements Listener {
 
         // Override /me
         OVERRIDE_ME = getConfig().getBoolean("override_me", true);
+
+        // Muted commands
+        MUTED_COMMANDS = getConfig().getStringList("muted-commands");
 
         // Default tags
         if(getConfig().getBoolean("use_examples", true)) {
@@ -238,20 +240,43 @@ public class Chitchat extends JavaPlugin implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onMeCommand(PlayerCommandPreprocessEvent command) {
-        if (OVERRIDE_ME) {
-            Player player = command.getPlayer();
-            String message = command.getMessage().substring(1);
+    public void onPreprocessCommand(PlayerCommandPreprocessEvent command) {
+        Player player = command.getPlayer();
+        String[] commandMsg = command.getMessage().split("\\s+");
 
-            // -- /me -- //
-            if (message.startsWith("me ")) {
+        // Muted commands
+        if (MUTE_SET.contains(player.getName())) {
+            if (MUTED_COMMANDS.contains(commandMsg[0].toLowerCase().substring(1))) {
                 command.setCancelled(true);
-                if (!MUTE_SET.contains(player.getName())) {
-                    message = ChatColor.ITALIC + ChatColor.stripColor(player.getDisplayName() + " " + message.substring(3));
-                    if (USE_REDIS && !FORMAT.shouldCancelRedis(player)) {
-                        RChitchat.REDIS_CHAT.publish(RChitchat.getServerId() + "$" + message);
-                    }
-                    Bukkit.broadcastMessage(message);
+                player.sendMessage(ChatColor.RED + "I'm sorry " + player.getName() + ", I'm afraid I can't do that.");
+            }
+        }
+
+        // /me <message>
+        else if (OVERRIDE_ME && commandMsg.length > 1) {
+            command.setCancelled(true);
+            if (MUTED_COMMANDS.contains("me") && MUTE_SET.contains(player.getName())) {
+                player.sendMessage(ChatColor.RED + "I'm sorry " + player.getName() + ", I'm afraid I can't do that.");
+            } else {
+                String message = command.getMessage().substring(1);
+                message = ChatColor.ITALIC + ChatColor.stripColor(player.getDisplayName() + " " + message.substring(3));
+                if (USE_REDIS && !FORMAT.shouldCancelRedis(player)) {
+                    RChitchat.REDIS_CHAT.publish(RChitchat.getServerId() + "$" + message);
+                }
+                Bukkit.broadcastMessage(message);
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onQuit(PlayerQuitEvent event) {
+        // Remove all useless reply data
+        String playerName = event.getPlayer().getName();
+        REPLY_MAP.remove(playerName);
+        if (REPLY_MAP.containsValue(playerName)) {
+            for (Map.Entry<String, String> entry : REPLY_MAP.entrySet()) {
+                if (entry.getValue().equals(playerName)) {
+                    REPLY_MAP.remove(entry.getKey());
                 }
             }
         }
