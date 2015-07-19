@@ -135,7 +135,7 @@ public class ChatFormat {
     public String getTagsString(Player player, ChatScope scope) {
         String formatted = "";
         for (PlayerTag tag : playerTags) {
-            if (tag.getScope().equals(scope) || ChatScope.ALL.equals(scope)) {
+            if (tag.getScope().equals(scope) || ChatScope.ALL.equals(tag.getScope())) {
                 formatted += tag.getFor(player);
             }
         }
