@@ -2,6 +2,7 @@ package com.demigodsrpg.chitchat;
 
 import com.demigodsrpg.chitchat.redis.RedisChatListener;
 import com.demigodsrpg.chitchat.redis.RedisMsgListener;
+import com.demigodsrpg.chitchat.tag.ChatScope;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -64,7 +65,7 @@ public class RChitchat implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onFinalChat(AsyncPlayerChatEvent chat) {
         if (!Chitchat.FORMAT.shouldCancelRedis(chat.getPlayer())) {
-            REDIS_CHAT.publish(SERVER_ID + "$" + chat.getFormat());
+            REDIS_CHAT.publish(SERVER_ID + "$" + Chitchat.getChatFormat().getFormattedMessage(chat.getPlayer(), ChatScope.CHANNEL, chat.getMessage()));
         }
     }
 

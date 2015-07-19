@@ -28,6 +28,7 @@ import com.demigodsrpg.chitchat.command.CCMsgCommand;
 import com.demigodsrpg.chitchat.command.CCMuteCommand;
 import com.demigodsrpg.chitchat.command.CCReloadCommand;
 import com.demigodsrpg.chitchat.format.ChatFormat;
+import com.demigodsrpg.chitchat.tag.ChatScope;
 import com.demigodsrpg.chitchat.tag.DefaultPlayerTag;
 import com.demigodsrpg.chitchat.tag.SpecificPlayerTag;
 import com.demigodsrpg.chitchat.tag.WorldPlayerTag;
@@ -104,7 +105,9 @@ public class Chitchat extends JavaPlugin implements Listener {
         CCMsgCommand msgCommand = new CCMsgCommand();
         getCommand("ccreload").setExecutor(reloadCommand);
         getCommand("ccmute").setExecutor(muteCommand);
+        getCommand("ccmute").setTabCompleter(muteCommand);
         getCommand("ccunmute").setExecutor(muteCommand);
+        getCommand("ccunmute").setTabCompleter(muteCommand);
         getCommand("ccmsg").setExecutor(msgCommand);
         getCommand("ccreply").setExecutor(msgCommand);
 
@@ -236,7 +239,7 @@ public class Chitchat extends JavaPlugin implements Listener {
             chat.setCancelled(true);
             return;
         }
-        chat.setFormat(FORMAT.getFormattedMessage(chat.getPlayer(), chat.getMessage()));
+        chat.setFormat(FORMAT.getFormattedMessage(chat.getPlayer(), ChatScope.LOCAL, chat.getMessage()));
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

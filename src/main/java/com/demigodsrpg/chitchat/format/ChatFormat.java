@@ -25,6 +25,7 @@
 package com.demigodsrpg.chitchat.format;
 
 import com.demigodsrpg.chitchat.Chitchat;
+import com.demigodsrpg.chitchat.tag.ChatScope;
 import com.demigodsrpg.chitchat.tag.PlayerTag;
 import com.google.common.collect.ImmutableList;
 import org.bukkit.ChatColor;
@@ -128,12 +129,15 @@ public class ChatFormat {
      * Get the string representation of all of the player tags.
      *
      * @param player The player for whom the tags will be applied.
+     * @param scope The scope for the tag to be presented in.
      * @return The string of the final tag results.
      */
-    public String getTagsString(Player player) {
+    public String getTagsString(Player player, ChatScope scope) {
         String formatted = "";
         for (PlayerTag tag : playerTags) {
-            formatted += tag.getFor(player);
+            if (tag.getScope().equals(scope) || ChatScope.ALL.equals(scope)) {
+                formatted += tag.getFor(player);
+            }
         }
         return formatted;
     }
@@ -151,12 +155,13 @@ public class ChatFormat {
      * Get the final formatted message for this chat format.
      *
      * @param player The player chatting.
+     * @param scope The scope for the message to be presented in.
      * @param message The message being sent.
      * @return The final formatted message.
      */
-    public String getFormattedMessage(Player player, String message) {
+    public String getFormattedMessage(Player player, ChatScope scope, String message) {
         return ChatColor.translateAlternateColorCodes('&', format).
-                replace("+tags", getTagsString(player)).
+                replace("+tags", getTagsString(player, scope)).
                 replace("+message", player.hasPermission("chitchat.color") ?
                         ChatColor.translateAlternateColorCodes('&', message) : message).
                 replaceAll("%", "%%").

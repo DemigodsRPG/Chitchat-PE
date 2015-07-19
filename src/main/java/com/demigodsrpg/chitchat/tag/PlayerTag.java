@@ -46,6 +46,15 @@ public abstract class PlayerTag {
     public abstract String getFor(Player tagSource);
 
     /**
+     * Get the tag's chat scope.
+     *
+     * @return The scope for this tag to be presented in.
+     */
+    public ChatScope getScope() {
+        return ChatScope.ALL;
+    }
+
+    /**
      * Should this player currently be not be sending chat over redis?
      *
      * @param tagSource The player.
