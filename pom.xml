@@ -6,7 +6,7 @@
 
     <groupId>com.demigodsrpg</groupId>
     <artifactId>chitchat</artifactId>
-    <version>1.2.2-SNAPSHOT</version>
+    <version>1.2.2</version>
 
     <name>Chitchat</name>
     <properties> <!-- It is important to keep up to date manually. -->
