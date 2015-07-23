@@ -231,6 +231,18 @@ public class Chitchat extends JavaPlugin implements Listener {
         TITLE.clearTitle(player, reset);
     }
 
+    /**
+     * Send a message through the Chitchat plugin. Includes the redis chat channel.
+     *
+     * @param message The message to be sent.
+     */
+    public static void sendMessage(String message) {
+        if (getInst().USE_REDIS) {
+            RChitchat.REDIS_CHAT.publish(RChitchat.getServerId() + "$" + message);
+        }
+        Bukkit.broadcastMessage(message);
+    }
+
     // -- BUKKIT CHAT LISTENER -- //
 
     @EventHandler(priority = EventPriority.LOWEST)
