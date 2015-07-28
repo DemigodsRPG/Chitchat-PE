@@ -24,6 +24,7 @@
  */
 package com.demigodsrpg.chitchat.tag;
 
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.entity.Player;
 
 /**
@@ -33,12 +34,12 @@ public class DefaultPlayerTag extends PlayerTag {
     // -- IMPORTANT DATA -- //
     private final String name;
     private final String permissionNode;
-    private final String tagText;
+    private final TextComponent tagText;
     private final int priority;
 
     // -- CONSTRUCTOR -- //
 
-    public DefaultPlayerTag(String name, String permissionNode, String tagText, int priority) {
+    public DefaultPlayerTag(String name, String permissionNode, TextComponent tagText, int priority) {
         this.name = name;
         this.permissionNode = permissionNode;
         this.tagText = tagText;
@@ -53,11 +54,11 @@ public class DefaultPlayerTag extends PlayerTag {
     }
 
     @Override
-    public String getFor(Player tagSource) {
+    public TextComponent getComponentFor(Player tagSource) {
         if(tagSource.hasPermission(permissionNode)) {
             return tagText;
         }
-        return "";
+        return null;
     }
 
     @Override

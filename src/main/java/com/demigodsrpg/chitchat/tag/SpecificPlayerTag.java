@@ -24,6 +24,7 @@
  */
 package com.demigodsrpg.chitchat.tag;
 
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.entity.Player;
 
 /**
@@ -34,12 +35,12 @@ public class SpecificPlayerTag extends PlayerTag {
 
     private final String name;
     private final String playerName;
-    private final String tagText;
+    private final TextComponent tagText;
     private final int priority;
 
     // -- CONSTRUCTOR -- //
 
-    public SpecificPlayerTag(String name, String playerName, String tagText, int priority) {
+    public SpecificPlayerTag(String name, String playerName, TextComponent tagText, int priority) {
         this.name = name;
         this.playerName = playerName;
         this.tagText = tagText;
@@ -54,11 +55,11 @@ public class SpecificPlayerTag extends PlayerTag {
     }
 
     @Override
-    public String getFor(Player tagSource) {
+    public TextComponent getComponentFor(Player tagSource) {
         if(tagSource.getName().equals(playerName)) {
             return tagText;
         }
-        return "";
+        return null;
     }
 
     @Override

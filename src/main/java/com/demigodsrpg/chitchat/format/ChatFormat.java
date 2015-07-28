@@ -24,10 +24,11 @@
  */
 package com.demigodsrpg.chitchat.format;
 
-import com.demigodsrpg.chitchat.Chitchat;
 import com.demigodsrpg.chitchat.tag.ChatScope;
 import com.demigodsrpg.chitchat.tag.PlayerTag;
 import com.google.common.collect.ImmutableList;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -42,25 +43,6 @@ public class ChatFormat {
     // -- IMPORTANT DATA -- //
 
     private final List<PlayerTag> playerTags = new LinkedList<>();
-    private final String format;
-
-    // -- CONSTRUCTORS -- //
-
-    /**
-     * Create a default chat format.
-     */
-    public ChatFormat() {
-        this(Chitchat.getInst().getConfig().getString("format", "+tags&7+displayname&7: &f+message"));
-    }
-
-    /**
-     * Create a chat format from a string representing the format.
-     *
-     * @param format The string representing the format.
-     */
-    public ChatFormat(String format) {
-        this.format = format;
-    }
 
     // -- MUTATORS -- //
 
@@ -126,29 +108,22 @@ public class ChatFormat {
     }
 
     /**
-     * Get the string representation of all of the player tags.
+     * Get the representation of all of the player tags.
      *
      * @param player The player for whom the tags will be applied.
      * @param scope The scope for the tag to be presented in.
-     * @return The string of the final tag results.
+     * @return The tag results.
      */
-    public String getTagsString(Player player, ChatScope scope) {
-        String formatted = "";
+    public TextComponent getTags(TextComponent parent, Player player, ChatScope scope) {
         for (PlayerTag tag : playerTags) {
             if (tag.getScope().equals(scope) || ChatScope.ALL.equals(tag.getScope())) {
-                formatted += tag.getFor(player);
+                TextComponent component = tag.getComponentFor(player);
+                if (component != null) {
+                    parent.addExtra(component.duplicate());
+                }
             }
         }
-        return formatted;
-    }
-
-    /**
-     * Get the format base string.
-     *
-     * @return The format base string.
-     */
-    public String getFormatString() {
-        return format;
+        return parent;
     }
 
     /**
@@ -159,13 +134,24 @@ public class ChatFormat {
      * @param message The message being sent.
      * @return The final formatted message.
      */
-    public String getFormattedMessage(Player player, ChatScope scope, String message) {
-        return ChatColor.translateAlternateColorCodes('&', format).
-                replace("+tags", getTagsString(player, scope)).
-                replace("+message", player.hasPermission("chitchat.color") ?
-                        ChatColor.translateAlternateColorCodes('&', message) : message).
-                replaceAll("%", "%%").
-                replace("+displayname", player.getDisplayName());
+    public BaseComponent getFormattedMessage(Player player, ChatScope scope, String message) {
+        TextComponent ret = new TextComponent("");
+        ret = getTags(ret, player, scope);
+        ret.setColor(net.md_5.bungee.api.ChatColor.GRAY);
+        for (BaseComponent component : TextComponent.fromLegacyText(player.getDisplayName())) {
+            ret.addExtra(component);
+        }
+        TextComponent next = new TextComponent(": ");
+        next.setColor(net.md_5.bungee.api.ChatColor.DARK_GRAY);
+        ret.addExtra(next);
+        String finalMessage = ChatColor.WHITE + message.replaceAll("%", "%%");
+        if (player.hasPermission("chitchat.color")) {
+            finalMessage = ChatColor.translateAlternateColorCodes('&', finalMessage);
+        }
+        for (BaseComponent component : TextComponent.fromLegacyText(finalMessage)) {
+            ret.addExtra(component);
+        }
+        return ret;
     }
 
     /**

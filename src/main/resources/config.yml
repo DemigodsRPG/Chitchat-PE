@@ -4,7 +4,6 @@ redis:
   channel: 'default'
   connection: '127.0.0.1:6379'
   server_id: 'minecraft'
-format: '+tags&7+displayname&7: &f+message'
 override_me: true
 muted-commands:
   - me

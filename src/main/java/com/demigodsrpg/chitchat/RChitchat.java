@@ -2,11 +2,7 @@ package com.demigodsrpg.chitchat;
 
 import com.demigodsrpg.chitchat.redis.RedisChatListener;
 import com.demigodsrpg.chitchat.redis.RedisMsgListener;
-import com.demigodsrpg.chitchat.tag.ChatScope;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.redisson.Config;
 import org.redisson.Redisson;
 import org.redisson.core.RTopic;
@@ -59,13 +55,6 @@ public class RChitchat implements Listener {
             cc.getLogger().severe("Redis connection was unsuccessful!");
             cc.getLogger().severe("Disabling all Redis features.");
             cc.USE_REDIS = false;
-        }
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onFinalChat(AsyncPlayerChatEvent chat) {
-        if (!Chitchat.FORMAT.shouldCancelRedis(chat.getPlayer())) {
-            REDIS_CHAT.publish(SERVER_ID + "$" + Chitchat.getChatFormat().getFormattedMessage(chat.getPlayer(), ChatScope.CHANNEL, chat.getMessage()));
         }
     }
 

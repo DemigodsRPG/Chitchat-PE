@@ -24,6 +24,7 @@
  */
 package com.demigodsrpg.chitchat.tag;
 
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.entity.Player;
 
 /**
@@ -43,7 +44,21 @@ public abstract class PlayerTag {
      * @param tagSource The player.
      * @return The tag result.
      */
-    public abstract String getFor(Player tagSource);
+    public TextComponent getComponentFor(Player tagSource) {
+        return new TextComponent(TextComponent.fromLegacyText(getFor(tagSource)));
+    }
+
+    /**
+     * Get the tag result for a player.
+     *
+     * @param tagSource The player.
+     * @return The tag result.
+     * @deprecated This method uses legacy
+     */
+    @Deprecated
+    public String getFor(Player tagSource) {
+        throw new UnsupportedOperationException("This method is not supported.");
+    }
 
     /**
      * Get the tag's chat scope.
@@ -62,18 +77,6 @@ public abstract class PlayerTag {
      */
     public boolean cancelRedis(Player tagSource) {
         return false;
-    }
-
-    /**
-     * Should this player currently be not be sending chat over redis?
-     *
-     * @param tagSource The player.
-     * @return The message shouldn't be sent to bungee.
-     * @deprecated Bungee is no longer supported, we use redis now.
-     */
-    @Deprecated
-    public boolean cancelBungee(Player tagSource) {
-        return cancelRedis(tagSource);
     }
 
     /**
