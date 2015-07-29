@@ -144,7 +144,7 @@ public class ChatFormat {
         TextComponent next = new TextComponent(": ");
         next.setColor(net.md_5.bungee.api.ChatColor.DARK_GRAY);
         ret.addExtra(next);
-        String finalMessage = ChatColor.WHITE + message.replaceAll("%", "%%");
+        String finalMessage = ChatColor.WHITE + message;
         if (player.hasPermission("chitchat.color")) {
             finalMessage = ChatColor.translateAlternateColorCodes('&', finalMessage);
         }
