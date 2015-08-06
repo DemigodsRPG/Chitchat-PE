@@ -16,7 +16,7 @@ public class MineChatDetector implements Listener {
     static final List<String> USING_MINECHAT = new ArrayList<>();
     static final Cache<String, Long> JOINED_RECENTLY = CacheBuilder.newBuilder().concurrencyLevel(4).
             expireAfterWrite(3, TimeUnit.SECONDS).build();
-    static final String[] MINE_SPAM = new String[]{"connected with a", "using MineChat"};
+    static final String[] MINE_SPAM = new String[]{"connected with a", "using minechat"};
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onJoin(PlayerJoinEvent event) {
