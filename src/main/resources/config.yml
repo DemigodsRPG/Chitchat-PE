@@ -10,3 +10,4 @@ muted-commands:
   - ccmsg
   - ccreply
   - poke
+detect-minechat: true

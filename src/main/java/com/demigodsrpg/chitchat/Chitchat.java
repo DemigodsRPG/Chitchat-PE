@@ -71,6 +71,7 @@ public class Chitchat extends JavaPlugin implements Listener {
 
     boolean OVERRIDE_ME;
     boolean USE_REDIS;
+    static boolean DETECT_MINECHAT;
     List<String> MUTED_COMMANDS;
 
     // -- BUKKIT ENABLE/DISABLE -- //
@@ -123,6 +124,13 @@ public class Chitchat extends JavaPlugin implements Listener {
         getCommand("ccunmute").setTabCompleter(muteCommand);
         getCommand("ccmsg").setExecutor(msgCommand);
         getCommand("ccreply").setExecutor(msgCommand);
+
+        DETECT_MINECHAT = getConfig().getBoolean("detect-minechat", true);
+
+        // Minechat stuff
+        if (DETECT_MINECHAT) {
+            getServer().getPluginManager().registerEvents(new MineChatDetector(), this);
+        }
 
         // Will we use redis?
         USE_REDIS = getConfig().getBoolean("redis.use", true);
@@ -249,11 +257,12 @@ public class Chitchat extends JavaPlugin implements Listener {
      *
      * @param message The message to be sent.
      */
+    @SuppressWarnings("unchecked")
     public static void sendMessage(BaseComponent message) {
         if (getInst().USE_REDIS) {
             RChitchat.REDIS_CHAT.publish(RChitchat.getServerId() + "$" + message.toLegacyText());
         }
-        Bukkit.getServer().spigot().broadcast(message);
+        sendMessage(message, (Collection<Player>) Bukkit.getServer().getOnlinePlayers());
     }
 
     /**
@@ -262,9 +271,13 @@ public class Chitchat extends JavaPlugin implements Listener {
      * @param message    The message to be sent.
      * @param recipients The recipients of this message.
      */
-    public static void sendMessage(BaseComponent message, Set<Player> recipients) {
+    public static void sendMessage(BaseComponent message, Collection<Player> recipients) {
         for (Player player : recipients) {
-            player.spigot().sendMessage(message);
+            if (DETECT_MINECHAT && MineChatDetector.USING_MINECHAT.contains(player.getUniqueId().toString())) {
+                player.sendMessage(message.toLegacyText());
+            } else {
+                player.spigot().sendMessage(message);
+            }
         }
     }
 
