@@ -38,6 +38,7 @@ public class MineChatDetector implements Listener {
             String message = event.getMessage().toLowerCase();
             if (message.startsWith(MINE_SPAM[0]) && message.endsWith(MINE_SPAM[1])) {
                 USING_MINECHAT.add(playerId);
+                event.setCancelled(true);
             }
         }
     }

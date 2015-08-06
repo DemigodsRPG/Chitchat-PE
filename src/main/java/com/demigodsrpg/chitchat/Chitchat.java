@@ -294,7 +294,7 @@ public class Chitchat extends JavaPlugin implements Listener {
 
     // -- BUKKIT CHAT LISTENER -- //
 
-    @EventHandler(priority = EventPriority.LOWEST)
+    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onChat(AsyncPlayerChatEvent chat) {
         if (MUTE_SET.contains(chat.getPlayer().getName())) {
             chat.setCancelled(true);
