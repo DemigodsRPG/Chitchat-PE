@@ -28,7 +28,6 @@ import com.demigodsrpg.chitchat.command.CCMsgCommand;
 import com.demigodsrpg.chitchat.command.CCMuteCommand;
 import com.demigodsrpg.chitchat.command.CCReloadCommand;
 import com.demigodsrpg.chitchat.format.ChatFormat;
-import com.demigodsrpg.chitchat.tag.ChatScope;
 import com.demigodsrpg.chitchat.tag.DefaultPlayerTag;
 import com.demigodsrpg.chitchat.tag.SpecificPlayerTag;
 import com.demigodsrpg.chitchat.tag.WorldPlayerTag;
@@ -38,16 +37,8 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerCommandPreprocessEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.*;
@@ -55,11 +46,11 @@ import java.util.*;
 /**
  * The simplest plugin for chitchat.
  */
-public class Chitchat extends JavaPlugin implements Listener {
+public class Chitchat extends JavaPlugin {
     // -- STATIC OBJECTS -- //
 
-    private static Chitchat INST;
-    private static TitleUtil TITLE;
+    static Chitchat INST;
+    static TitleUtil TITLE;
     static ChatFormat FORMAT;
     static LibraryHandler LIBRARIES;
 
@@ -111,7 +102,7 @@ public class Chitchat extends JavaPlugin implements Listener {
         }
 
         // Register events
-        getServer().getPluginManager().registerEvents(this, this);
+        getServer().getPluginManager().registerEvents(new ChatListener(), this);
 
         // Register commands
         CCReloadCommand reloadCommand = new CCReloadCommand();
@@ -174,7 +165,7 @@ public class Chitchat extends JavaPlugin implements Listener {
     @Override
     public void onDisable() {
         // Manually unregister events
-        HandlerList.unregisterAll((Plugin) this);
+        HandlerList.unregisterAll(this);
     }
 
     // -- INST API METHODS -- //
@@ -290,64 +281,5 @@ public class Chitchat extends JavaPlugin implements Listener {
     @Deprecated
     public static void sendMessage(String message) {
         sendMessage(new TextComponent(TextComponent.fromLegacyText(message)));
-    }
-
-    // -- BUKKIT CHAT LISTENER -- //
-
-    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
-    public void onChat(AsyncPlayerChatEvent chat) {
-        if (MUTE_SET.contains(chat.getPlayer().getName())) {
-            chat.setCancelled(true);
-        }
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onFinalChat(AsyncPlayerChatEvent chat) {
-        sendMessage(FORMAT.getFormattedMessage(chat.getPlayer(), ChatScope.LOCAL, chat.getMessage()), chat.getRecipients());
-        if (USE_REDIS && !FORMAT.shouldCancelRedis(chat.getPlayer())) {
-            RChitchat.REDIS_CHAT.publish(RChitchat.getServerId() + "$" +
-                    getChatFormat().getFormattedMessage(chat.getPlayer(), ChatScope.CHANNEL, chat.getMessage()).toLegacyText());
-        }
-        chat.getRecipients().clear();
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onPreprocessCommand(PlayerCommandPreprocessEvent command) {
-        Player player = command.getPlayer();
-        String[] commandMsg = command.getMessage().split("\\s+");
-
-        // Muted commands
-        if (MUTE_SET.contains(player.getName())) {
-            if (MUTED_COMMANDS.contains(commandMsg[0].toLowerCase().substring(1))) {
-                command.setCancelled(true);
-                player.sendMessage(ChatColor.RED + "I'm sorry " + player.getName() + ", I'm afraid I can't do that.");
-            }
-        }
-
-        // /me <message>
-        else if (OVERRIDE_ME && commandMsg.length > 1 && commandMsg[0].equals("/me")) {
-            command.setCancelled(true);
-            if (MUTED_COMMANDS.contains("me") && MUTE_SET.contains(player.getName())) {
-                player.sendMessage(ChatColor.RED + "I'm sorry " + player.getName() + ", I'm afraid I can't do that.");
-            } else {
-                String message = command.getMessage().substring(1);
-                message = ChatColor.ITALIC + ChatColor.stripColor(player.getDisplayName() + " " + message.substring(3));
-                sendMessage(new TextComponent(message));
-            }
-        }
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onQuit(PlayerQuitEvent event) {
-        // Remove all useless reply data
-        String playerName = event.getPlayer().getName();
-        REPLY_MAP.remove(playerName);
-        if (REPLY_MAP.containsValue(playerName)) {
-            for (Map.Entry<String, String> entry : REPLY_MAP.entrySet()) {
-                if (entry.getValue().equals(playerName)) {
-                    REPLY_MAP.remove(entry.getKey());
-                }
-            }
-        }
     }
 }
