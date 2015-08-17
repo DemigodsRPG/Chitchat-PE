@@ -18,7 +18,7 @@ public class ChatListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onChat(AsyncPlayerChatEvent chat) {
-        if (Chitchat.getMuteSet().contains(chat.getPlayer().getName())) {
+        if (Chitchat.getMuteSet().contains(chat.getPlayer().getUniqueId().toString())) {
             chat.setCancelled(true);
         }
     }
@@ -41,7 +41,7 @@ public class ChatListener implements Listener {
         String[] commandMsg = command.getMessage().split("\\s+");
 
         // Muted commands
-        if (Chitchat.getMuteSet().contains(player.getName())) {
+        if (Chitchat.getMuteSet().contains(player.getUniqueId().toString())) {
             if (Chitchat.getInst().MUTED_COMMANDS.contains(commandMsg[0].toLowerCase().substring(1))) {
                 command.setCancelled(true);
                 player.sendMessage(ChatColor.RED + "I'm sorry " + player.getName() + ", I'm afraid I can't do that.");
@@ -51,7 +51,8 @@ public class ChatListener implements Listener {
         // /me <message>
         else if (Chitchat.getInst().OVERRIDE_ME && commandMsg.length > 1 && commandMsg[0].equals("/me")) {
             command.setCancelled(true);
-            if (Chitchat.getInst().MUTED_COMMANDS.contains("me") && Chitchat.getMuteSet().contains(player.getName())) {
+            if (Chitchat.getInst().MUTED_COMMANDS.contains("me") && Chitchat.getMuteSet().contains(player.getUniqueId().
+                    toString())) {
                 player.sendMessage(ChatColor.RED + "I'm sorry " + player.getName() + ", I'm afraid I can't do that.");
             } else {
                 String message = command.getMessage().substring(1);

@@ -10,25 +10,47 @@ import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class CCMuteCommand implements TabExecutor {
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    public boolean onCommand(final CommandSender sender, Command command, String label, final String[] args) {
         if (sender instanceof Player && sender.hasPermission("chitchat.mute")) {
             if (args.length > 0) {
                 if (command.getName().equals("ccmute")) {
                     if ("list".equalsIgnoreCase(args[0])) {
                         sender.sendMessage(ChatColor.YELLOW + "// -- Currently Muted Players -- //");
-                        for (String mutedName : Chitchat.getMuteSet()) {
-                            sender.sendMessage(ChatColor.YELLOW + "  - " + mutedName);
+                        for (String mutedId : Chitchat.getMuteSet()) {
+                            String mutedName = Bukkit.getOfflinePlayer(UUID.fromString(mutedId)).getName();
+                            sender.sendMessage(ChatColor.YELLOW + "  - " + (mutedName != null ? mutedName : mutedId));
                         }
                         return true;
                     }
-                    Chitchat.getMuteSet().add(args[0]);
-                    sender.sendMessage(ChatColor.YELLOW + "Muted " + args[0]);
+                    Bukkit.getScheduler().scheduleAsyncDelayedTask(Chitchat.getInst(), new Runnable() {
+                        @Override
+                        public void run() {
+                            String mutedId = Bukkit.getOfflinePlayer(args[0]).getUniqueId().toString();
+                            try {
+                                Chitchat.getMuteSet().add(mutedId);
+                                sender.sendMessage(ChatColor.YELLOW + "Muted " + args[0]);
+                            } catch (Exception oops) {
+                                sender.sendMessage(ChatColor.RED + args[0] + " does not exist, try again.");
+                            }
+                        }
+                    });
                 } else {
-                    Chitchat.getMuteSet().remove(args[0]);
-                    sender.sendMessage(ChatColor.YELLOW + "Unmuted " + args[0]);
+                    Bukkit.getScheduler().scheduleAsyncDelayedTask(Chitchat.getInst(), new Runnable() {
+                        @Override
+                        public void run() {
+                            String mutedId = Bukkit.getOfflinePlayer(args[0]).getUniqueId().toString();
+                            try {
+                                Chitchat.getMuteSet().remove(mutedId);
+                                sender.sendMessage(ChatColor.YELLOW + "Unmuted " + args[0]);
+                            } catch (Exception oops) {
+                                sender.sendMessage(ChatColor.RED + args[0] + " does not exist, try again.");
+                            }
+                        }
+                    });
                 }
             } else {
                 return false;

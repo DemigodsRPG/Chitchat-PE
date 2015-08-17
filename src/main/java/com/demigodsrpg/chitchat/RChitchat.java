@@ -32,7 +32,7 @@ public class RChitchat implements Listener {
         REDIS_CHAT = REDIS.getTopic(SERVER_CHANNEL + "$" + "chat.topic");
 
         // Setup mute set
-        cc.MUTE_SET = REDIS.getSet(SERVER_CHANNEL + "$" + "mute.set");
+        cc.MUTE_SET = REDIS.getSet("mute.set");
 
         // Setup reply map
         cc.REPLY_MAP = REDIS.getMap(SERVER_CHANNEL + "$" + "reply.map");
