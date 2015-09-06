@@ -26,12 +26,16 @@ package com.demigodsrpg.chitchat;
 
 import com.demigodsrpg.chitchat.command.CCMsgCommand;
 import com.demigodsrpg.chitchat.command.CCMuteCommand;
+import com.demigodsrpg.chitchat.command.CCMuteListCommand;
 import com.demigodsrpg.chitchat.command.CCReloadCommand;
 import com.demigodsrpg.chitchat.format.ChatFormat;
 import com.demigodsrpg.chitchat.tag.DefaultPlayerTag;
 import com.demigodsrpg.chitchat.tag.SpecificPlayerTag;
 import com.demigodsrpg.chitchat.tag.WorldPlayerTag;
+import com.demigodsrpg.chitchat.util.JsonFileUtil;
 import com.demigodsrpg.chitchat.util.LibraryHandler;
+import com.demigodsrpg.chitchat.util.TitleUtil;
+import com.google.common.collect.ImmutableList;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -41,38 +45,49 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * The simplest plugin for chitchat.
  */
 public class Chitchat extends JavaPlugin {
-    // -- STATIC OBJECTS -- //
+
+    // -- IMPORTANT OBJECTS -- //
 
     static Chitchat INST;
-    static TitleUtil TITLE;
-    static ChatFormat FORMAT;
-    static LibraryHandler LIBRARIES;
+    ChatFormat FORMAT;
+    JsonFileUtil JSON;
+    TitleUtil TITLE;
+    LibraryHandler LIBRARIES;
+
 
     // -- IMPORTANT LISTS -- //
-    Set<String> MUTE_SET;
-    Map<String, String> REPLY_MAP;
+    ConcurrentMap<String, Double> MUTE_MAP;
+    ConcurrentMap<String, String> REPLY_MAP;
 
     // -- OPTIONS -- //
 
     boolean OVERRIDE_ME;
     boolean USE_REDIS;
-    static boolean DETECT_MINECHAT;
+    boolean SAVE_MUTES;
     List<String> MUTED_COMMANDS;
 
     // -- BUKKIT ENABLE/DISABLE -- //
 
+    @SuppressWarnings("unchecked")
     @Override
     public void onEnable() {
         // Define static objects
         INST = this;
         FORMAT = new ChatFormat();
         LIBRARIES = new LibraryHandler(this);
+
+        // Handle local data saves
+        JSON = new JsonFileUtil(getDataFolder(), true);
 
         // Handle config
         getConfig().options().copyDefaults(true);
@@ -82,7 +97,7 @@ public class Chitchat extends JavaPlugin {
         OVERRIDE_ME = getConfig().getBoolean("override_me", true);
 
         // Muted commands
-        MUTED_COMMANDS = getConfig().getStringList("muted-commands");
+        MUTED_COMMANDS = ImmutableList.copyOf(getConfig().getStringList("muted-commands"));
 
         // Default tags
         if(getConfig().getBoolean("use_examples", true)) {
@@ -102,26 +117,21 @@ public class Chitchat extends JavaPlugin {
         }
 
         // Register events
-        getServer().getPluginManager().registerEvents(new ChatListener(), this);
+        getServer().getPluginManager().registerEvents(new ChatListener(this), this);
 
         // Register commands
-        CCReloadCommand reloadCommand = new CCReloadCommand();
-        CCMuteCommand muteCommand = new CCMuteCommand();
-        CCMsgCommand msgCommand = new CCMsgCommand();
+        CCReloadCommand reloadCommand = new CCReloadCommand(this);
+        CCMuteListCommand muteListCommand = new CCMuteListCommand(this);
+        CCMuteCommand muteCommand = new CCMuteCommand(this, JSON);
+        CCMsgCommand msgCommand = new CCMsgCommand(this);
         getCommand("ccreload").setExecutor(reloadCommand);
+        getCommand("ccmutelist").setExecutor(muteListCommand);
         getCommand("ccmute").setExecutor(muteCommand);
         getCommand("ccmute").setTabCompleter(muteCommand);
         getCommand("ccunmute").setExecutor(muteCommand);
         getCommand("ccunmute").setTabCompleter(muteCommand);
         getCommand("ccmsg").setExecutor(msgCommand);
         getCommand("ccreply").setExecutor(msgCommand);
-
-        DETECT_MINECHAT = getConfig().getBoolean("detect-minechat", true);
-
-        // Minechat stuff
-        if (DETECT_MINECHAT) {
-            getServer().getPluginManager().registerEvents(new MineChatDetector(), this);
-        }
 
         // Will we use redis?
         USE_REDIS = getConfig().getBoolean("redis.use", true);
@@ -148,16 +158,34 @@ public class Chitchat extends JavaPlugin {
 
         if (!USE_REDIS) {
             // Setup mute list
-            MUTE_SET = new HashSet<>();
+            MUTE_MAP = new ConcurrentHashMap<>();
 
             // Setup private message map
-            REPLY_MAP = new HashMap<>();
+            REPLY_MAP = new ConcurrentHashMap<>();
+        }
+
+        // Handle mute settings
+        SAVE_MUTES = getConfig().getBoolean("save_mutes", false);
+        if (savingMutes()) {
+            try {
+                MUTE_MAP = new ConcurrentHashMap<>(JSON.loadFromFile("mutes"));
+            } catch (Exception oops) {
+                getLogger().severe("Unable to load saved mutes, did someone tamper with the data?");
+            }
+        }
+
+        // Clean up old mutes (only one server should do this to avoid unnecessary threads
+        if (!USE_REDIS || getConfig().getBoolean("redis.clean_old_mutes", false)) {
+            Bukkit.getScheduler().scheduleAsyncRepeatingTask(this, () -> MUTE_MAP.entrySet().stream().
+                    filter(entry -> entry.getValue() < System.currentTimeMillis()).
+                    forEach((Map.Entry<String, Double> entry) -> MUTE_MAP.remove(entry.getKey())), 30, 30);
         }
 
         // FIXME DEBUG
         try {
             TITLE = new TitleUtil();
-        } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | NoSuchFieldException e) {
+        } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException |
+                NoSuchFieldException e) {
             e.printStackTrace();
         }
     }
@@ -166,17 +194,22 @@ public class Chitchat extends JavaPlugin {
     public void onDisable() {
         // Manually unregister events
         HandlerList.unregisterAll(this);
+
+        // Save mutes
+        if (savingMutes()) {
+            JSON.saveToFile("mutes", MUTE_MAP);
+        }
     }
 
     // -- INST API METHODS -- //
 
     /**
-     * Get the set of all muted players.
+     * Get the map of all muted players and their mute length in milliseconds.
      *
-     * @return The set of all muted players.
+     * @return The map of all muted players.
      */
-    public static Set<String> getMuteSet() {
-        return getInst().MUTE_SET;
+    public Map<String, Double> getMuteMap() {
+        return MUTE_MAP;
     }
 
     /**
@@ -184,8 +217,8 @@ public class Chitchat extends JavaPlugin {
      *
      * @return Map of all recent reply pairs.
      */
-    public static Map<String, String> getReplyMap() {
-        return getInst().REPLY_MAP;
+    public Map<String, String> getReplyMap() {
+        return REPLY_MAP;
     }
 
     // -- STATIC API METHODS -- //
@@ -196,7 +229,7 @@ public class Chitchat extends JavaPlugin {
      * @return The enabled chat format.
      */
     public static ChatFormat getChatFormat() {
-        return FORMAT;
+        return getInst().FORMAT;
     }
 
     /**
@@ -207,7 +240,7 @@ public class Chitchat extends JavaPlugin {
      */
     @Deprecated
     public static void setChatFormat(ChatFormat chatFormat) {
-        FORMAT = chatFormat;
+        getInst().FORMAT = chatFormat;
     }
 
     /**
@@ -229,8 +262,9 @@ public class Chitchat extends JavaPlugin {
      * @param title        The title text.
      * @param subtitle     The subtitle text.
      */
-    public static void sendTitle(Player player, int fadeInTicks, int stayTicks, int fadeOutTicks, String title, String subtitle) {
-        TITLE.sendTitle(player, fadeInTicks, stayTicks, fadeOutTicks, title, subtitle);
+    public static void sendTitle(Player player, int fadeInTicks, int stayTicks, int fadeOutTicks, String title,
+                                 String subtitle) {
+        getInst().TITLE.sendTitle(player, fadeInTicks, stayTicks, fadeOutTicks, title, subtitle);
     }
 
     /**
@@ -240,7 +274,7 @@ public class Chitchat extends JavaPlugin {
      * @param reset  True if reset, false for clear.
      */
     public static void clearTitle(final Player player, boolean reset) {
-        TITLE.clearTitle(player, reset);
+        getInst().TITLE.clearTitle(player, reset);
     }
 
     /**
@@ -251,7 +285,7 @@ public class Chitchat extends JavaPlugin {
     @SuppressWarnings("unchecked")
     public static void sendMessage(BaseComponent message) {
         if (getInst().USE_REDIS) {
-            RChitchat.REDIS_CHAT.publish(RChitchat.getServerId() + "$" + message.toLegacyText());
+            RChitchat.REDIS_CHAT.publish(RChitchat.getInst().getServerId() + "$" + message.toLegacyText());
         }
         sendMessage(message, (Collection<Player>) Bukkit.getServer().getOnlinePlayers());
     }
@@ -264,11 +298,7 @@ public class Chitchat extends JavaPlugin {
      */
     public static void sendMessage(BaseComponent message, Collection<Player> recipients) {
         for (Player player : recipients) {
-            if (DETECT_MINECHAT && MineChatDetector.USING_MINECHAT.contains(player.getUniqueId().toString())) {
-                player.sendMessage(message.toLegacyText());
-            } else {
-                player.spigot().sendMessage(message);
-            }
+            player.spigot().sendMessage(message);
         }
     }
 
@@ -281,5 +311,15 @@ public class Chitchat extends JavaPlugin {
     @Deprecated
     public static void sendMessage(String message) {
         sendMessage(new TextComponent(TextComponent.fromLegacyText(message)));
+    }
+
+    // -- OPTION GETTERS -- //
+
+    public boolean usingRedis() {
+        return getInst().USE_REDIS;
+    }
+
+    public boolean savingMutes() {
+        return !getInst().USE_REDIS && getInst().SAVE_MUTES;
     }
 }

@@ -7,10 +7,16 @@ import org.bukkit.OfflinePlayer;
 import org.redisson.core.MessageListener;
 
 public class RedisMsgListener implements MessageListener<String> {
+    private final Chitchat INST;
+
+    public RedisMsgListener(Chitchat inst) {
+        INST = inst;
+    }
+
     @Override
     public void onMessage(String json) {
-        PrivateMessage message = new PrivateMessage(json);
-        Chitchat.getInst().getLogger().info(message.getLogMessage());
+        PrivateMessage message = new PrivateMessage(INST, json);
+        INST.getLogger().info(message.getLogMessage());
         OfflinePlayer offline = Bukkit.getOfflinePlayer(message.getTarget());
         if (offline.isOnline()) {
             offline.getPlayer().sendMessage(message.getFormattedMessage(false));

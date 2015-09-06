@@ -32,6 +32,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -77,9 +78,7 @@ public class ChatFormat {
      * @return This chat format.
      */
     public ChatFormat addAll(Collection<PlayerTag> playerTags) {
-        for(PlayerTag tag : playerTags) {
-            add(tag);
-        }
+        playerTags.forEach(this::add);
         return this;
     }
 
@@ -90,9 +89,7 @@ public class ChatFormat {
      * @return This chat format.
      */
     public ChatFormat addAll(PlayerTag[] playerTags) {
-        for(PlayerTag tag : playerTags) {
-            add(tag);
-        }
+        Arrays.asList(playerTags).forEach(this::add);
         return this;
     }
 
@@ -115,14 +112,13 @@ public class ChatFormat {
      * @return The tag results.
      */
     public TextComponent getTags(TextComponent parent, Player player, ChatScope scope) {
-        for (PlayerTag tag : playerTags) {
-            if (tag.getScope().equals(scope) || ChatScope.ALL.equals(tag.getScope())) {
-                TextComponent component = tag.getComponentFor(player);
-                if (component != null) {
-                    parent.addExtra(component.duplicate());
-                }
+        playerTags.stream().filter(tag -> tag.getScope().equals(scope) || ChatScope.ALL.equals(tag.getScope())).
+                forEach(tag -> {
+                    TextComponent component = tag.getComponentFor(player);
+                    if (component != null) {
+                        parent.addExtra(component.duplicate());
             }
-        }
+                });
         return parent;
     }
 

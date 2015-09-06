@@ -1,4 +1,4 @@
-package com.demigodsrpg.chitchat;
+package com.demigodsrpg.chitchat.util;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -30,7 +30,8 @@ public class TitleUtil {
 
     final Object[] ACTION_ARRAY;
 
-    TitleUtil() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InstantiationException, NoSuchFieldException {
+    public TitleUtil() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException,
+            InstantiationException, NoSuchFieldException {
         String name = Bukkit.getServer().getClass().getPackage().getName();
         String version = name.substring(name.lastIndexOf('.') + 1) + ".";
 
@@ -70,7 +71,8 @@ public class TitleUtil {
      * @param title        The title text.
      * @param subtitle     The subtitle text.
      */
-    void sendTitle(Player player, int fadeInTicks, int stayTicks, int fadeOutTicks, String title, String subtitle) {
+    public void sendTitle(Player player, int fadeInTicks, int stayTicks, int fadeOutTicks, String title,
+                          String subtitle) {
         try {
             clearTitle(player, true);
 
@@ -78,7 +80,8 @@ public class TitleUtil {
             Object entityPlayer = GET_HANDLE.invoke(craftPlayer);
             Object connection = PLAYER_CONN.get(entityPlayer);
 
-            Object packetPlayOutTimes = NMS_PACKET_PLAY_TITLE.getConstructor(NMS_TITLE_ACTION, NMS_ICHAT_BASE, Integer.TYPE, Integer.TYPE, Integer.TYPE).
+            Object packetPlayOutTimes = NMS_PACKET_PLAY_TITLE.getConstructor(NMS_TITLE_ACTION, NMS_ICHAT_BASE,
+                    Integer.TYPE, Integer.TYPE, Integer.TYPE).
                     newInstance(ACTION_ARRAY[2], null, fadeInTicks, stayTicks, fadeOutTicks);
             SEND_PACKET.invoke(connection, packetPlayOutTimes);
 
@@ -99,7 +102,8 @@ public class TitleUtil {
                         newInstance(ACTION_ARRAY[0], titleMain);
                 SEND_PACKET.invoke(connection, packetPlayOutTitle);
             }
-        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | InstantiationException oops) {
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException |
+                InstantiationException oops) {
             oops.printStackTrace();
         }
     }
@@ -110,7 +114,7 @@ public class TitleUtil {
      * @param player The player being cleared/reset.
      * @param reset  True if reset, false for clear.
      */
-    void clearTitle(final Player player, boolean reset) {
+    public void clearTitle(final Player player, boolean reset) {
         try {
             Object craftPlayer = CB_CRAFTPLAYER.cast(player);
             Object entityPlayer = GET_HANDLE.invoke(craftPlayer);

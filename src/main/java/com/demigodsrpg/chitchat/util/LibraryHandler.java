@@ -53,7 +53,8 @@ public class LibraryHandler {
     public void addMavenLibrary(String repo, String groupId, String artifactId, String version) {
         try {
             String fileName = artifactId + "-" + version + ".jar";
-            loadLibrary(fileName, new URI(repo + groupId.replace(".", "/") + "/" + artifactId + "/" + version + "/" + fileName).toURL());
+            loadLibrary(fileName, new URI(repo + groupId.replace(".", "/") + "/" + artifactId + "/" + version + "/" +
+                    fileName).toURL());
         } catch (Exception oops) {
             oops.printStackTrace();
         }
@@ -103,7 +104,8 @@ public class LibraryHandler {
         try {
             ClassPathHack.addFile(file, (URLClassLoader) PLUGIN.getClass().getClassLoader());
         } catch (Exception oops) {
-            PLUGIN.getLogger().severe("Couldn't load " + (file != null ? file.getName() : "a required library") + ", this may cause problems.");
+            PLUGIN.getLogger().severe("Couldn't load " + (file != null ? file.getName() : "a required library") + ", " +
+                    "this may cause problems.");
             oops.printStackTrace();
         }
     }

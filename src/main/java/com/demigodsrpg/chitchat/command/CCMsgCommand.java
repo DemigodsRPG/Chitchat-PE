@@ -9,9 +9,15 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 
 public class CCMsgCommand implements CommandExecutor {
+    private final Chitchat INST;
+
+    public CCMsgCommand(Chitchat inst) {
+        INST = inst;
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (sender.hasPermission("chitchat.msg") && !Chitchat.getMuteSet().contains(sender.getName())) {
+        if (sender.hasPermission("chitchat.msg") && !INST.getMuteMap().keySet().contains(sender.getName())) {
             String receiver;
             String message = Joiner.on(" ").join(args);
             if ("ccmsg".equals(command.getName()) && args.length > 1) {
@@ -36,7 +42,7 @@ public class CCMsgCommand implements CommandExecutor {
             }
 
             // Create the private message
-            PrivateMessage privateMessage = new PrivateMessage(receiver, sender.getName(), message);
+            PrivateMessage privateMessage = new PrivateMessage(INST, receiver, sender.getName(), message);
 
             // Send the message
             privateMessage.send();
@@ -51,8 +57,8 @@ public class CCMsgCommand implements CommandExecutor {
     // -- PRIVATE HELPER METHODS -- //
 
     private String getLastSentMsgMatch(CommandSender sender) {
-        if (Chitchat.getReplyMap().containsKey(sender.getName())) {
-            return Chitchat.getReplyMap().get(sender.getName());
+        if (INST.getReplyMap().containsKey(sender.getName())) {
+            return INST.getReplyMap().get(sender.getName());
         }
         return "";
     }

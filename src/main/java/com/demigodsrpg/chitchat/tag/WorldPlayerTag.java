@@ -57,7 +57,8 @@ public class WorldPlayerTag extends PlayerTag {
         }
 
         // Generate the tag text
-        String tagText = ChatColor.translateAlternateColorCodes('&', Chitchat.getInst().getConfig().getString("worlds." + worldName + ".text", "[" + worldName.toUpperCase() + "]"));
+        String tagText = ChatColor.translateAlternateColorCodes('&', Chitchat.getInst().getConfig().getString("worlds."
+                + worldName + ".text", "[" + worldName.toUpperCase() + "]"));
         TEXT_CACHE.put(worldName, tagText);
         return tagText;
     }

@@ -11,25 +11,30 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-import java.util.Map;
-
 public class ChatListener implements Listener {
+
+    private final Chitchat INST;
+
+    public ChatListener(Chitchat inst) {
+        INST = inst;
+    }
+
     // -- BUKKIT CHAT LISTENER -- //
 
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onChat(AsyncPlayerChatEvent chat) {
-        if (Chitchat.getMuteSet().contains(chat.getPlayer().getUniqueId().toString())) {
+        if (INST.getMuteMap().keySet().contains(chat.getPlayer().getUniqueId().toString())) {
             chat.setCancelled(true);
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onFinalChat(AsyncPlayerChatEvent chat) {
-        Chitchat.sendMessage(Chitchat.FORMAT.getFormattedMessage(chat.getPlayer(), ChatScope.LOCAL, chat.getMessage()),
+        Chitchat.sendMessage(INST.FORMAT.getFormattedMessage(chat.getPlayer(), ChatScope.LOCAL, chat.getMessage()),
                 chat.getRecipients());
-        if (Chitchat.getInst().USE_REDIS && !Chitchat.FORMAT.shouldCancelRedis(chat.getPlayer())) {
-            RChitchat.REDIS_CHAT.publish(RChitchat.getServerId() + "$" +
-                    Chitchat.FORMAT.getFormattedMessage(chat.getPlayer(), ChatScope.CHANNEL, chat.getMessage()).
+        if (Chitchat.getInst().USE_REDIS && !INST.FORMAT.shouldCancelRedis(chat.getPlayer())) {
+            RChitchat.REDIS_CHAT.publish(RChitchat.getInst().getServerId() + "$" +
+                    INST.FORMAT.getFormattedMessage(chat.getPlayer(), ChatScope.CHANNEL, chat.getMessage()).
                             toLegacyText());
         }
         chat.getRecipients().clear();
@@ -41,7 +46,7 @@ public class ChatListener implements Listener {
         String[] commandMsg = command.getMessage().split("\\s+");
 
         // Muted commands
-        if (Chitchat.getMuteSet().contains(player.getUniqueId().toString())) {
+        if (INST.getMuteMap().keySet().contains(player.getUniqueId().toString())) {
             if (Chitchat.getInst().MUTED_COMMANDS.contains(commandMsg[0].toLowerCase().substring(1))) {
                 command.setCancelled(true);
                 player.sendMessage(ChatColor.RED + "I'm sorry " + player.getName() + ", I'm afraid I can't do that.");
@@ -51,8 +56,8 @@ public class ChatListener implements Listener {
         // /me <message>
         else if (Chitchat.getInst().OVERRIDE_ME && commandMsg.length > 1 && commandMsg[0].equals("/me")) {
             command.setCancelled(true);
-            if (Chitchat.getInst().MUTED_COMMANDS.contains("me") && Chitchat.getMuteSet().contains(player.getUniqueId().
-                    toString())) {
+            if (Chitchat.getInst().MUTED_COMMANDS.contains("me") && INST.getMuteMap().keySet().contains(player.
+                    getUniqueId().toString())) {
                 player.sendMessage(ChatColor.RED + "I'm sorry " + player.getName() + ", I'm afraid I can't do that.");
             } else {
                 String message = command.getMessage().substring(1);
@@ -66,13 +71,11 @@ public class ChatListener implements Listener {
     public void onQuit(PlayerQuitEvent event) {
         // Remove all useless reply data
         String playerName = event.getPlayer().getName();
-        Chitchat.getReplyMap().remove(playerName);
-        if (Chitchat.getReplyMap().containsValue(playerName)) {
-            for (Map.Entry<String, String> entry : Chitchat.getReplyMap().entrySet()) {
-                if (entry.getValue().equals(playerName)) {
-                    Chitchat.getReplyMap().remove(entry.getKey());
-                }
-            }
+        INST.getReplyMap().remove(playerName);
+        if (INST.getReplyMap().containsValue(playerName)) {
+            INST.getReplyMap().entrySet().stream().
+                    filter(entry -> entry.getValue().equals(playerName)).
+                    forEach(entry -> INST.getReplyMap().remove(entry.getKey()));
         }
     }
 }

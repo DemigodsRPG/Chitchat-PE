@@ -33,6 +33,7 @@ public class ClassPathHack {
         addURL(f.toURI().toURL(), cL);
     }
 
+    @SuppressWarnings({"unchecked", "RedundantArrayCreation"})
     public static void addURL(URL u, URLClassLoader cL) throws IOException {
         Class urlClassLoader = URLClassLoader.class;
         try {

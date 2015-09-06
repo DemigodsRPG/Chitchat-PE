@@ -6,9 +6,15 @@ import org.bukkit.entity.Player;
 import org.redisson.core.MessageListener;
 
 public class RedisChatListener implements MessageListener<String> {
+    private final RChitchat R_INST;
+
+    public RedisChatListener(RChitchat rInst) {
+        R_INST = rInst;
+    }
+
     @Override
     public void onMessage(String message) {
-        if (message != null && !message.startsWith(RChitchat.getServerId() + "$")) {
+        if (message != null && !message.startsWith(R_INST.getServerId() + "$")) {
             for (Player player : Bukkit.getOnlinePlayers()) {
                 player.sendMessage(message.substring(message.indexOf('$') + 1));
             }

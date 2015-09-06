@@ -6,15 +6,18 @@ authors: [HmmmQuestionMark]
 commands:
   ccreload:
     usage: /ccreload
+  ccmutelist:
+    usage: /ccmutelist
+    aliases: [mutelist, ccml]
   ccmute:
-    usage: /ccmute <player>
-    aliases: [ccm]
+    usage: /ccmute <player> [time] [unit]
+    aliases: [mute, ccm]
   ccunmute:
     usage: /ccunmute <player>
-    aliases: [ccum]
+    aliases: [unmute, ccum]
   ccmsg:
     usage: /ccmsg <player> <message>
-    aliases: [msg, pm]
+    aliases: [msg, pm, whisper, tell]
   ccreply:
     usage: /ccreply <message>
     aliases: [ccr, rep, r]

@@ -4,10 +4,11 @@ redis:
   channel: 'default'
   connection: '127.0.0.1:6379'
   server_id: 'minecraft'
+  clean_old_mutes: false
 override_me: true
 muted-commands:
   - me
   - ccmsg
   - ccreply
   - poke
-detect-minechat: true
+save_mutes: false

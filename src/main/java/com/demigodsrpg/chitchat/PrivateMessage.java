@@ -15,6 +15,10 @@ public class PrivateMessage implements Serializable {
 
     public static final long serialVersionUID = 1L;
 
+    // -- TRANSIENT DATA -- //
+
+    private final transient Chitchat INST;
+
     // -- META DATA -- //
 
     private String target;
@@ -24,7 +28,8 @@ public class PrivateMessage implements Serializable {
     // -- CONSTRUCTORS -- //
 
     @SuppressWarnings("unchecked")
-    public PrivateMessage(String json) {
+    public PrivateMessage(Chitchat inst, String json) {
+        INST = inst;
         Gson gson = new GsonBuilder().create();
         Map<String, Object> map = gson.fromJson(json, Map.class);
         target = map.get("target").toString();
@@ -32,7 +37,8 @@ public class PrivateMessage implements Serializable {
         message = map.get("message").toString();
     }
 
-    public PrivateMessage(String target, String sender, String message) {
+    public PrivateMessage(Chitchat inst, String target, String sender, String message) {
+        INST = inst;
         this.target = target;
         this.sender = sender;
         this.message = message;
@@ -53,7 +59,8 @@ public class PrivateMessage implements Serializable {
     }
 
     public String getFormattedMessage(boolean out) {
-        return ChatColor.DARK_GRAY + "PM" + (out ? " to" : " from") + " <" + ChatColor.DARK_AQUA + (out ? target : sender) + ChatColor.DARK_GRAY + ">: " + ChatColor.GRAY + message;
+        return ChatColor.DARK_GRAY + "PM" + (out ? " to" : " from") + " <" + ChatColor.DARK_AQUA +
+                (out ? target : sender) + ChatColor.DARK_GRAY + ">: " + ChatColor.GRAY + message;
     }
 
     public String getLogMessage() {
@@ -94,7 +101,7 @@ public class PrivateMessage implements Serializable {
         }
 
         // Add to the reply map
-        Chitchat.getReplyMap().put(this.sender, this.target);
-        Chitchat.getReplyMap().put(this.target, this.sender);
+        INST.getReplyMap().put(this.sender, this.target);
+        INST.getReplyMap().put(this.target, this.sender);
     }
 }
