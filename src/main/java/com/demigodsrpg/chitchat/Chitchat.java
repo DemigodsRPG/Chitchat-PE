@@ -316,10 +316,10 @@ public class Chitchat extends JavaPlugin {
     // -- OPTION GETTERS -- //
 
     public boolean usingRedis() {
-        return getInst().USE_REDIS;
+        return USE_REDIS;
     }
 
     public boolean savingMutes() {
-        return !getInst().USE_REDIS && getInst().SAVE_MUTES;
+        return !USE_REDIS && SAVE_MUTES;
     }
 }
