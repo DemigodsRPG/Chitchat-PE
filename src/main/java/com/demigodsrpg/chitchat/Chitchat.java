@@ -89,6 +89,14 @@ public class Chitchat extends JavaPlugin {
         // Handle local data saves
         JSON = new JsonFileUtil(getDataFolder(), true);
 
+        // Setup TitleUtil
+        try {
+            TITLE = new TitleUtil();
+        } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException |
+                NoSuchFieldException e) {
+            e.printStackTrace();
+        }
+
         // Handle config
         getConfig().options().copyDefaults(true);
         saveConfig();
@@ -180,14 +188,6 @@ public class Chitchat extends JavaPlugin {
                     filter(entry -> entry.getValue() < System.currentTimeMillis()).
                     forEach((Map.Entry<String, Double> entry) -> MUTE_MAP.remove(entry.getKey())), 30, 30);
         }
-
-        // FIXME DEBUG
-        try {
-            TITLE = new TitleUtil();
-        } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException |
-                NoSuchFieldException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override
@@ -264,7 +264,9 @@ public class Chitchat extends JavaPlugin {
      */
     public static void sendTitle(Player player, int fadeInTicks, int stayTicks, int fadeOutTicks, String title,
                                  String subtitle) {
-        getInst().TITLE.sendTitle(player, fadeInTicks, stayTicks, fadeOutTicks, title, subtitle);
+        if (getInst().TITLE != null) {
+            getInst().TITLE.sendTitle(player, fadeInTicks, stayTicks, fadeOutTicks, title, subtitle);
+        }
     }
 
     /**
@@ -274,7 +276,9 @@ public class Chitchat extends JavaPlugin {
      * @param reset  True if reset, false for clear.
      */
     public static void clearTitle(final Player player, boolean reset) {
-        getInst().TITLE.clearTitle(player, reset);
+        if (getInst().TITLE != null) {
+            getInst().TITLE.clearTitle(player, reset);
+        }
     }
 
     /**
@@ -306,7 +310,7 @@ public class Chitchat extends JavaPlugin {
      * Send a message through the Chitchat plugin. Includes the redis chat channel.
      *
      * @param message The message to be sent.
-     * @deprecated This method is depreciated in favor of the
+     * @deprecated This method is depreciated in favor of the new BaseComponent based method.
      */
     @Deprecated
     public static void sendMessage(String message) {
