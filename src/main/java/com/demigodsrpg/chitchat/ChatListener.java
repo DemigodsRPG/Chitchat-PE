@@ -33,7 +33,7 @@ public class ChatListener implements Listener {
         Chitchat.sendMessage(INST.FORMAT.getFormattedMessage(chat.getPlayer(), ChatScope.LOCAL, chat.getMessage()),
                 chat.getRecipients());
         if (Chitchat.getInst().USE_REDIS && !INST.FORMAT.shouldCancelRedis(chat.getPlayer())) {
-            RChitchat.REDIS_CHAT.publish(RChitchat.getInst().getServerId() + "$" +
+            RChitchat.REDIS_CHAT.publishAsync(RChitchat.getInst().getServerId() + "$" +
                     INST.FORMAT.getFormattedMessage(chat.getPlayer(), ChatScope.CHANNEL, chat.getMessage()).
                             toLegacyText());
         }

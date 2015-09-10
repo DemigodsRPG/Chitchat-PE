@@ -13,7 +13,7 @@ public class RedisChatListener implements MessageListener<String> {
     }
 
     @Override
-    public void onMessage(String message) {
+    public void onMessage(String ignored, String message) {
         if (message != null && !message.startsWith(R_INST.getServerId() + "$")) {
             for (Player player : Bukkit.getOnlinePlayers()) {
                 player.sendMessage(message.substring(message.indexOf('$') + 1));

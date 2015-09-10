@@ -156,8 +156,6 @@ public class Chitchat extends JavaPlugin {
             LIBRARIES.addMavenLibrary(LibraryHandler.MAVEN_CENTRAL, Depends.COM_FASTERXML_JACKSON_CORE,
                     Depends.JACKSON_CORE, Depends.JACKSON_VER);
             LIBRARIES.addMavenLibrary(LibraryHandler.MAVEN_CENTRAL, Depends.COM_FASTERXML_JACKSON_CORE,
-                    Depends.JACKSON_ANNOTATIONS, Depends.JACKSON_VER);
-            LIBRARIES.addMavenLibrary(LibraryHandler.MAVEN_CENTRAL, Depends.COM_FASTERXML_JACKSON_CORE,
                     Depends.JACKSON_DATABIND, Depends.JACKSON_VER);
 
             // Setup redis related stuff

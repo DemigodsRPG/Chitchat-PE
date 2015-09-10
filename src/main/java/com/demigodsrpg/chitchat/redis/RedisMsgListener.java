@@ -14,7 +14,7 @@ public class RedisMsgListener implements MessageListener<String> {
     }
 
     @Override
-    public void onMessage(String json) {
+    public void onMessage(String ignored, String json) {
         PrivateMessage message = new PrivateMessage(INST, json);
         INST.getLogger().info(message.getLogMessage());
         OfflinePlayer offline = Bukkit.getOfflinePlayer(message.getTarget());

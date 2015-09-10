@@ -1,6 +1,5 @@
 package com.demigodsrpg.chitchat;
 
-import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -30,8 +29,7 @@ public class PrivateMessage implements Serializable {
     @SuppressWarnings("unchecked")
     public PrivateMessage(Chitchat inst, String json) {
         INST = inst;
-        Gson gson = new GsonBuilder().create();
-        Map<String, Object> map = gson.fromJson(json, Map.class);
+        Map<String, Object> map = new GsonBuilder().create().fromJson(json, Map.class);
         target = map.get("target").toString();
         sender = map.get("sender").toString();
         message = map.get("message").toString();
@@ -72,8 +70,7 @@ public class PrivateMessage implements Serializable {
         map.put("target", target);
         map.put("sender", sender);
         map.put("message", message);
-        Gson gson = new GsonBuilder().create();
-        return gson.toJson(map, Map.class);
+        return new GsonBuilder().create().toJson(map, Map.class);
     }
 
     // -- SEND -- //
@@ -88,7 +85,7 @@ public class PrivateMessage implements Serializable {
             Chitchat.getInst().getLogger().info(getLogMessage());
         } else if (Chitchat.getInst().USE_REDIS) {
             // Nope, send through redis
-            RChitchat.REDIS_MSG.publish(toJson());
+            RChitchat.REDIS_MSG.publishAsync(toJson());
         } else if (sender.isOnline()) {
             // Something went wrong
             sender.getPlayer().sendMessage(ChatColor.RED + "There was an error sending a private message.");

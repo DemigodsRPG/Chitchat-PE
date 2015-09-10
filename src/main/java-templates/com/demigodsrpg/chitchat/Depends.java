@@ -10,7 +10,6 @@ public class Depends {
     public static final String SLF4J_API = "slf4j-api";
     public static final String KYRO = "kryo";
     public static final String JACKSON_CORE = "jackson-core";
-    public static final String JACKSON_ANNOTATIONS = "jackson-annotations";
     public static final String JACKSON_DATABIND = "jackson-databind";
 
     public static final String REDISSON_VER = "${redisson.version}";
