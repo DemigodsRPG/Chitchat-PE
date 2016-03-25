@@ -30,6 +30,7 @@ import com.demigodsrpg.chitchat.command.CCMuteListCommand;
 import com.demigodsrpg.chitchat.command.CCReloadCommand;
 import com.demigodsrpg.chitchat.format.ChatFormat;
 import com.demigodsrpg.chitchat.tag.DefaultPlayerTag;
+import com.demigodsrpg.chitchat.tag.NameTag;
 import com.demigodsrpg.chitchat.tag.SpecificPlayerTag;
 import com.demigodsrpg.chitchat.tag.WorldPlayerTag;
 import com.demigodsrpg.chitchat.util.JsonFileUtil;
@@ -117,7 +118,7 @@ public class Chitchat extends JavaPlugin {
             dev.setColor(net.md_5.bungee.api.ChatColor.DARK_GRAY);
             dev.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Developer").
                     color(net.md_5.bungee.api.ChatColor.DARK_GRAY).create()));
-            FORMAT.add(new WorldPlayerTag())
+            FORMAT.add(new NameTag()).add(new WorldPlayerTag())
                     .add(new DefaultPlayerTag("example-prefix", "chitchat.admin", admin, 3))
                     .add(new SpecificPlayerTag("hqm", "HmmmQuestionMark", dev, 3))
                     .add(new SpecificPlayerTag("hqm2", "HandyQuestMarker", dev, 3))

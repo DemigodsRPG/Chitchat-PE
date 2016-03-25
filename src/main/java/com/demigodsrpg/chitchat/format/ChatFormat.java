@@ -25,7 +25,6 @@
 package com.demigodsrpg.chitchat.format;
 
 import com.demigodsrpg.chitchat.tag.ChatScope;
-import com.demigodsrpg.chitchat.tag.NameTag;
 import com.demigodsrpg.chitchat.tag.PlayerTag;
 import com.google.common.collect.ImmutableList;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -44,7 +43,6 @@ import java.util.List;
 public class ChatFormat {
     // -- IMPORTANT DATA -- //
 
-    private PlayerTag nameTag = new NameTag();
     private final List<PlayerTag> playerTags = new LinkedList<>();
 
     // -- MUTATORS -- //
@@ -95,17 +93,6 @@ public class ChatFormat {
         return this;
     }
 
-    /**
-     * Set the name tag to the chat format.
-     *
-     * @param playerTag A player tag.
-     * @return This chat format.
-     */
-    public ChatFormat setNameTag(PlayerTag playerTag) {
-        nameTag = playerTag;
-        return this;
-    }
-
     // -- GETTERS -- //
 
     /**
@@ -147,7 +134,6 @@ public class ChatFormat {
         TextComponent ret = new TextComponent("");
         ret = getTags(ret, player, scope);
         ret.setColor(net.md_5.bungee.api.ChatColor.GRAY);
-        ret.addExtra(nameTag.getComponentFor(player));
         TextComponent next = new TextComponent(": ");
         next.setColor(net.md_5.bungee.api.ChatColor.DARK_GRAY);
         ret.addExtra(next);
@@ -159,15 +145,6 @@ public class ChatFormat {
             ret.addExtra(component);
         }
         return ret;
-    }
-
-    /**
-     * Get the name tag from the chat format.
-     *
-     * @return The name tag.
-     */
-    public PlayerTag getNameTag() {
-        return nameTag;
     }
 
     /**

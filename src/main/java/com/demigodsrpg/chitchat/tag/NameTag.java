@@ -12,7 +12,7 @@ public class NameTag extends PlayerTag {
 
     @Override
     public int getPriority() {
-        return 99;
+        return 999;
     }
 
     @Override
