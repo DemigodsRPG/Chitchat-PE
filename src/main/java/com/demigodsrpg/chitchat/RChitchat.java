@@ -2,13 +2,11 @@ package com.demigodsrpg.chitchat;
 
 import com.demigodsrpg.chitchat.redis.RedisChatListener;
 import com.demigodsrpg.chitchat.redis.RedisMsgListener;
-import org.bukkit.event.Listener;
 import org.redisson.Config;
 import org.redisson.Redisson;
 import org.redisson.core.RTopic;
 
-
-public class RChitchat implements Listener {
+public class RChitchat {
     // -- REDIS DATA -- //
     private static RChitchat INST;
     private final Redisson REDIS;
@@ -20,7 +18,7 @@ public class RChitchat implements Listener {
     private static String SERVER_CHANNEL;
     private static String SERVER_ID;
 
-    public RChitchat(Chitchat cc) {
+    public RChitchat(ChitchatPlugin cc) {
         // Define the instance
         INST = this;
 
@@ -57,8 +55,8 @@ public class RChitchat implements Listener {
             // Register the msg listener
             REDIS_MSG.addListener(new RedisMsgListener(cc));
         } catch (Exception ignored) {
-            cc.getLogger().severe("Redis connection was unsuccessful!");
-            cc.getLogger().severe("Disabling all Redis features.");
+            cc.getLogger().critical("Redis connection was unsuccessful!");
+            cc.getLogger().critical("Disabling all Redis features.");
             cc.USE_REDIS = false;
         }
     }

@@ -24,13 +24,13 @@
  */
 package com.demigodsrpg.chitchat.format;
 
+import cn.nukkit.Player;
 import com.demigodsrpg.chitchat.tag.ChatScope;
 import com.demigodsrpg.chitchat.tag.PlayerTag;
 import com.google.common.collect.ImmutableList;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
-import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
 
 import java.util.Arrays;
 import java.util.Collection;

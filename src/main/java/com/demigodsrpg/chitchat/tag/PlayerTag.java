@@ -24,8 +24,8 @@
  */
 package com.demigodsrpg.chitchat.tag;
 
+import cn.nukkit.Player;
 import net.md_5.bungee.api.chat.TextComponent;
-import org.bukkit.entity.Player;
 
 /**
  * An interface representing a player tag.

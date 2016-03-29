@@ -1,22 +1,21 @@
 package com.demigodsrpg.chitchat.command;
 
-import com.demigodsrpg.chitchat.Chitchat;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
+import cn.nukkit.Server;
+import cn.nukkit.command.Command;
+import cn.nukkit.command.CommandExecutor;
+import cn.nukkit.command.CommandSender;
+import com.demigodsrpg.chitchat.ChitchatPlugin;
+import net.md_5.bungee.api.ChatColor;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
-import java.util.UUID;
 
 public class CCMuteListCommand implements CommandExecutor {
 
-    private final Chitchat INST;
+    private final ChitchatPlugin INST;
 
-    public CCMuteListCommand(Chitchat inst) {
+    public CCMuteListCommand(ChitchatPlugin inst) {
         INST = inst;
     }
 
@@ -26,7 +25,7 @@ public class CCMuteListCommand implements CommandExecutor {
             if (!INST.getMuteMap().isEmpty()) {
                 sender.sendMessage(ChatColor.YELLOW + "// -- Currently Muted Players -- //");
                 for (Map.Entry<String, Double> entry : INST.getMuteMap().entrySet()) {
-                    String mutedName = Bukkit.getOfflinePlayer(UUID.fromString(entry.getKey())).getName();
+                    String mutedName = Server.getInstance().getOfflinePlayer(entry.getKey()).getName();
                     String mutedDate = prettyDate(entry.getValue().longValue());
                     sender.sendMessage(ChatColor.YELLOW + "  - " + ChatColor.WHITE + (mutedName != null ?
                             mutedName : entry.getKey()) + mutedDate);

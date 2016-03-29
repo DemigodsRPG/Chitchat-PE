@@ -1,17 +1,19 @@
 package com.demigodsrpg.chitchat.command;
 
-import com.demigodsrpg.chitchat.Chitchat;
+import cn.nukkit.command.Command;
+import cn.nukkit.command.CommandExecutor;
+import cn.nukkit.command.CommandSender;
+import com.demigodsrpg.chitchat.ChitchatPlugin;
 import com.demigodsrpg.chitchat.PrivateMessage;
 import com.google.common.base.Joiner;
-import org.bukkit.ChatColor;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
+import net.md_5.bungee.api.ChatColor;
+
+import java.util.Collections;
 
 public class CCMsgCommand implements CommandExecutor {
-    private final Chitchat INST;
+    private final ChitchatPlugin INST;
 
-    public CCMsgCommand(Chitchat inst) {
+    public CCMsgCommand(ChitchatPlugin inst) {
         INST = inst;
     }
 
@@ -19,7 +21,7 @@ public class CCMsgCommand implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (sender.hasPermission("chitchat.msg") && !INST.getMuteMap().keySet().contains(sender.getName())) {
             String receiver;
-            String message = Joiner.on(" ").join(args);
+            String message = Joiner.on(" ").join(Collections.singletonList(args));
             if ("ccmsg".equals(command.getName()) && args.length > 1) {
                 receiver = args[0];
                 message = message.substring(receiver.length() + 1);

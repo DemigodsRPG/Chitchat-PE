@@ -1,15 +1,15 @@
 package com.demigodsrpg.chitchat.redis;
 
-import com.demigodsrpg.chitchat.Chitchat;
+import cn.nukkit.IPlayer;
+import cn.nukkit.Server;
+import com.demigodsrpg.chitchat.ChitchatPlugin;
 import com.demigodsrpg.chitchat.PrivateMessage;
-import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
 import org.redisson.core.MessageListener;
 
 public class RedisMsgListener implements MessageListener<String> {
-    private final Chitchat INST;
+    private final ChitchatPlugin INST;
 
-    public RedisMsgListener(Chitchat inst) {
+    public RedisMsgListener(ChitchatPlugin inst) {
         INST = inst;
     }
 
@@ -17,7 +17,7 @@ public class RedisMsgListener implements MessageListener<String> {
     public void onMessage(String ignored, String json) {
         PrivateMessage message = new PrivateMessage(INST, json);
         INST.getLogger().info(message.getLogMessage());
-        OfflinePlayer offline = Bukkit.getOfflinePlayer(message.getTarget());
+        IPlayer offline = Server.getInstance().getOfflinePlayer(message.getTarget());
         if (offline.isOnline()) {
             offline.getPlayer().sendMessage(message.getFormattedMessage(false));
         }

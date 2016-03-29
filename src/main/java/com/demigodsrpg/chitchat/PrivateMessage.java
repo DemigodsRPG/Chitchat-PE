@@ -1,9 +1,9 @@
 package com.demigodsrpg.chitchat;
 
+import cn.nukkit.IPlayer;
+import cn.nukkit.Server;
 import com.google.gson.GsonBuilder;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.OfflinePlayer;
+import net.md_5.bungee.api.ChatColor;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -16,7 +16,7 @@ public class PrivateMessage implements Serializable {
 
     // -- TRANSIENT DATA -- //
 
-    private final transient Chitchat INST;
+    private final transient ChitchatPlugin INST;
 
     // -- META DATA -- //
 
@@ -27,7 +27,7 @@ public class PrivateMessage implements Serializable {
     // -- CONSTRUCTORS -- //
 
     @SuppressWarnings("unchecked")
-    public PrivateMessage(Chitchat inst, String json) {
+    public PrivateMessage(ChitchatPlugin inst, String json) {
         INST = inst;
         Map<String, Object> map = new GsonBuilder().create().fromJson(json, Map.class);
         target = map.get("target").toString();
@@ -35,7 +35,7 @@ public class PrivateMessage implements Serializable {
         message = map.get("message").toString();
     }
 
-    public PrivateMessage(Chitchat inst, String target, String sender, String message) {
+    public PrivateMessage(ChitchatPlugin inst, String target, String sender, String message) {
         INST = inst;
         this.target = target;
         this.sender = sender;
@@ -76,14 +76,17 @@ public class PrivateMessage implements Serializable {
     // -- SEND -- //
 
     public void send() {
+        // Get the server instance
+        Server server = Server.getInstance();
+
         // Get the sender
-        OfflinePlayer sender = Bukkit.getOfflinePlayer(this.sender);
+        IPlayer sender = server.getOfflinePlayer(this.sender);
 
         // Check if the player is on this server
-        if (Bukkit.getPlayer(target) != null) {
-            Bukkit.getPlayer(target).sendMessage(getFormattedMessage(false));
-            Chitchat.getInst().getLogger().info(getLogMessage());
-        } else if (Chitchat.getInst().USE_REDIS) {
+        if (server.getPlayer(target) != null) {
+            server.getPlayer(target).sendMessage(getFormattedMessage(false));
+            ChitchatPlugin.getInst().getLogger().info(getLogMessage());
+        } else if (ChitchatPlugin.getInst().USE_REDIS) {
             // Nope, send through redis
             RChitchat.REDIS_MSG.publishAsync(toJson());
         } else if (sender.isOnline()) {

@@ -24,9 +24,7 @@
  */
 package com.demigodsrpg.chitchat.tag;
 
-import com.demigodsrpg.chitchat.Chitchat;
-import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
+import cn.nukkit.Player;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -48,7 +46,7 @@ public class WorldPlayerTag extends PlayerTag {
 
     @Override
     public String getFor(Player tagSource) {
-        // Get world name
+        /*// Get world name
         String worldName = tagSource.getWorld().getName();
 
         // Check the cache
@@ -60,7 +58,8 @@ public class WorldPlayerTag extends PlayerTag {
         String tagText = ChatColor.translateAlternateColorCodes('&', Chitchat.getInst().getConfig().getString("worlds."
                 + worldName + ".text", "[" + worldName.toUpperCase() + "]"));
         TEXT_CACHE.put(worldName, tagText);
-        return tagText;
+        return tagText;*/
+        return "";
     }
 
     @Override

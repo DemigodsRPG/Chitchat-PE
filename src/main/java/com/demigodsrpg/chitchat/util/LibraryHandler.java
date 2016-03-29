@@ -17,7 +17,7 @@
 
 package com.demigodsrpg.chitchat.util;
 
-import org.bukkit.plugin.Plugin;
+import cn.nukkit.plugin.Plugin;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -60,10 +60,20 @@ public class LibraryHandler {
         }
     }
 
+    public void addMavenLibrarySnapshot(String repo, String groupId, String artifactId, String version, String snapshotId) {
+        try {
+            String fileName = artifactId + "-" + snapshotId + ".jar";
+            loadLibrary(fileName, new URI(repo + groupId.replace(".", "/") + "/" + artifactId + "/" + version + "/" +
+                    fileName).toURL());
+        } catch (Exception oops) {
+            oops.printStackTrace();
+        }
+    }
+
     public void checkDirectory() {
         // If it exists and isn't a directory, throw an error
         if (LIB_DIRECTORY.exists() && !LIB_DIRECTORY.isDirectory()) {
-            PLUGIN.getLogger().severe("The library directory isn't a directory!");
+            PLUGIN.getLogger().critical("The library directory isn't a directory!");
             return;
         }
         // Otherwise, make the directory
@@ -104,7 +114,7 @@ public class LibraryHandler {
         try {
             ClassPathHack.addFile(file, (URLClassLoader) PLUGIN.getClass().getClassLoader());
         } catch (Exception oops) {
-            PLUGIN.getLogger().severe("Couldn't load " + (file != null ? file.getName() : "a required library") + ", " +
+            PLUGIN.getLogger().critical("Couldn't load " + (file != null ? file.getName() : "a required library") + ", " +
                     "this may cause problems.");
             oops.printStackTrace();
         }
@@ -138,7 +148,8 @@ public class LibraryHandler {
             return libraryFile;
         } catch (final Exception oops) {
             // Couldn't download the file
-            PLUGIN.getLogger().severe("Download could not complete");
+            PLUGIN.getLogger().critical("Download could not complete");
+            oops.printStackTrace();
         } finally {
             // Close the streams
             try {

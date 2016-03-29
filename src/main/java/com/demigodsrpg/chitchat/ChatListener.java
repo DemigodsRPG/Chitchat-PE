@@ -1,38 +1,38 @@
 package com.demigodsrpg.chitchat;
 
+import cn.nukkit.Player;
+import cn.nukkit.event.EventHandler;
+import cn.nukkit.event.EventPriority;
+import cn.nukkit.event.Listener;
+import cn.nukkit.event.player.PlayerChatEvent;
+import cn.nukkit.event.player.PlayerCommandPreprocessEvent;
+import cn.nukkit.event.player.PlayerQuitEvent;
 import com.demigodsrpg.chitchat.tag.ChatScope;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.TextComponent;
-import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerCommandPreprocessEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 
 public class ChatListener implements Listener {
 
-    private final Chitchat INST;
+    private final ChitchatPlugin INST;
 
-    public ChatListener(Chitchat inst) {
+    public ChatListener(ChitchatPlugin inst) {
         INST = inst;
     }
 
     // -- BUKKIT CHAT LISTENER -- //
 
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
-    public void onChat(AsyncPlayerChatEvent chat) {
+    public void onChat(PlayerChatEvent chat) {
         if (INST.getMuteMap().keySet().contains(chat.getPlayer().getUniqueId().toString())) {
             chat.setCancelled(true);
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onFinalChat(AsyncPlayerChatEvent chat) {
+    public void onFinalChat(PlayerChatEvent chat) {
         Chitchat.sendMessage(INST.FORMAT.getFormattedMessage(chat.getPlayer(), ChatScope.LOCAL, chat.getMessage()),
                 chat.getRecipients());
-        if (Chitchat.getInst().USE_REDIS && !INST.FORMAT.shouldCancelRedis(chat.getPlayer())) {
+        if (ChitchatPlugin.getInst().USE_REDIS && !INST.FORMAT.shouldCancelRedis(chat.getPlayer())) {
             RChitchat.REDIS_CHAT.publishAsync(RChitchat.getInst().getServerId() + "$" +
                     INST.FORMAT.getFormattedMessage(chat.getPlayer(), ChatScope.CHANNEL, chat.getMessage()).
                             toLegacyText());
@@ -47,16 +47,16 @@ public class ChatListener implements Listener {
 
         // Muted commands
         if (INST.getMuteMap().keySet().contains(player.getUniqueId().toString())) {
-            if (Chitchat.getInst().MUTED_COMMANDS.contains(commandMsg[0].toLowerCase().substring(1))) {
+            if (ChitchatPlugin.getInst().MUTED_COMMANDS.contains(commandMsg[0].toLowerCase().substring(1))) {
                 command.setCancelled(true);
                 player.sendMessage(ChatColor.RED + "I'm sorry " + player.getName() + ", I'm afraid I can't do that.");
             }
         }
 
         // /me <message>
-        else if (Chitchat.getInst().OVERRIDE_ME && commandMsg.length > 1 && commandMsg[0].equals("/me")) {
+        else if (ChitchatPlugin.getInst().OVERRIDE_ME && commandMsg.length > 1 && commandMsg[0].equals("/me")) {
             command.setCancelled(true);
-            if (Chitchat.getInst().MUTED_COMMANDS.contains("me") && INST.getMuteMap().keySet().contains(player.
+            if (ChitchatPlugin.getInst().MUTED_COMMANDS.contains("me") && INST.getMuteMap().keySet().contains(player.
                     getUniqueId().toString())) {
                 player.sendMessage(ChatColor.RED + "I'm sorry " + player.getName() + ", I'm afraid I can't do that.");
             } else {

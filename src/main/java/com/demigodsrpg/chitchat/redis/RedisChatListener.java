@@ -1,8 +1,8 @@
 package com.demigodsrpg.chitchat.redis;
 
+import cn.nukkit.Player;
+import cn.nukkit.Server;
 import com.demigodsrpg.chitchat.RChitchat;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 import org.redisson.core.MessageListener;
 
 public class RedisChatListener implements MessageListener<String> {
@@ -15,7 +15,7 @@ public class RedisChatListener implements MessageListener<String> {
     @Override
     public void onMessage(String ignored, String message) {
         if (message != null && !message.startsWith(R_INST.getServerId() + "$")) {
-            for (Player player : Bukkit.getOnlinePlayers()) {
+            for (Player player : Server.getInstance().getOnlinePlayers().values()) {
                 player.sendMessage(message.substring(message.indexOf('$') + 1));
             }
         }
