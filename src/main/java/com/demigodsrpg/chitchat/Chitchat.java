@@ -24,11 +24,12 @@ public class Chitchat {
         dev.setColor(net.md_5.bungee.api.ChatColor.DARK_GRAY);
         dev.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Developer").
                 color(net.md_5.bungee.api.ChatColor.DARK_GRAY).create()));
-        chitchat.FORMAT.add(new NameTag())/*.add(new WorldPlayerTag())*/
+        chitchat.FORMAT/*.add(new WorldPlayerTag())*/
                 .add(new DefaultPlayerTag("example-prefix", "chitchat.admin", admin, 3))
                 .add(new SpecificPlayerTag("hqm", "HmmmQuestionMark", dev, 3))
                 .add(new SpecificPlayerTag("hqm2", "HandyQuestMarker", dev, 3))
-                .add(new SpecificPlayerTag("hqm3", "HQM", dev, 3));
+                .add(new SpecificPlayerTag("hqm3", "HQM", dev, 3))
+                .add(new NameTag());
     }
 
     // -- STATIC API METHODS -- //
