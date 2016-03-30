@@ -26,9 +26,7 @@ public class Chitchat {
                 color(net.md_5.bungee.api.ChatColor.DARK_GRAY).create()));
         chitchat.FORMAT/*.add(new WorldPlayerTag())*/
                 .add(new DefaultPlayerTag("example-prefix", "chitchat.admin", admin, 3))
-                .add(new SpecificPlayerTag("hqm", "HmmmQuestionMark", dev, 3))
-                .add(new SpecificPlayerTag("hqm2", "HandyQuestMarker", dev, 3))
-                .add(new SpecificPlayerTag("hqm3", "HQM", dev, 3))
+                .add(new SpecificPlayerTag("hqm", "HmmmQM", dev, 3))
                 .add(new NameTag());
     }
 
